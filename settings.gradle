@@ -13,6 +13,8 @@ rootProject.name = 'project-template-parent'
 
 include 'avro-schema-generator'
 include 'avro-serde'
+include 'avro-annotations'
+include 'avro-schema-common'
 
 enableFeaturePreview 'TYPESAFE_PROJECT_ACCESSORS'
 

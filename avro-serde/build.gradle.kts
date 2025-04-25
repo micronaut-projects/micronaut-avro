@@ -4,4 +4,5 @@ plugins {
 
 dependencies {
     api(mnSerde.micronaut.serde.api)
+    api(libs.avro)
 }
