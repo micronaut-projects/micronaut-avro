@@ -11,11 +11,12 @@ plugins {
 
 rootProject.name = 'project-template-parent'
 
-include 'project-template'
-include 'project-template-bom'
+include 'avro-schema-generator'
+include 'avro-serde'
 
 enableFeaturePreview 'TYPESAFE_PROJECT_ACCESSORS'
 
 micronautBuild {
+    useStandardizedProjectNames.set(true)
     importMicronautCatalog()
 }

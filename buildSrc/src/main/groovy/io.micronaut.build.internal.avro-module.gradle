@@ -2,3 +2,14 @@ plugins {
     id 'io.micronaut.build.internal.avro-base'
     id "io.micronaut.build.internal.module"
 }
+
+test {
+    useJUnitPlatform()
+}
+
+dependencies {
+    testImplementation(mnTest.junit.jupiter.engine)
+    testImplementation(mnTest.junit.jupiter.api)
+    testImplementation(mnTest.micronaut.test.junit5)
+}
+
