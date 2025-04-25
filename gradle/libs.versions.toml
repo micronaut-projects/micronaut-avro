@@ -17,6 +17,7 @@
 
 [versions]
 micronaut = "4.8.8"
+micronaut-serde = "2.14.0"
 micronaut-docs = "2.0.0"
 micronaut-test = "4.6.2"
 groovy = "4.0.24"
@@ -29,6 +30,7 @@ spock = "2.3-groovy-4.0"
 [libraries]
 # Core
 micronaut-core = { module = 'io.micronaut:micronaut-core-bom', version.ref = 'micronaut' }
+micronaut-serde = { module = 'io.micronaut.serde:micronaut-serde-bom', version.ref = 'micronaut-serde' }
 
 #
 # Managed dependencies appear in the BOM
