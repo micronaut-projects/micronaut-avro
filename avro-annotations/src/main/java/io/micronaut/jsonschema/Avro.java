@@ -21,7 +21,7 @@ import java.lang.annotation.Target;
 /**
  * An annotation that signifies that an Avro schema should be created for the object.
  * The Avro schema will attempt to reflect the way this object would be serialized.
- *
+ * @since 1.0
  */
 @Target({ ElementType.TYPE, ElementType.FIELD })
 public @interface Avro {

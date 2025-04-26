@@ -8,6 +8,7 @@ import java.lang.annotation.Target;
 /**
  * An annotation that loads the Avro schema from the resources' folder.
  * This annotation can be applied to classes.
+ * @since 1.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

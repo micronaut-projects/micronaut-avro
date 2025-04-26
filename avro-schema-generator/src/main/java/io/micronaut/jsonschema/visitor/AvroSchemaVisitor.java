@@ -29,6 +29,7 @@ import static io.micronaut.jsonschema.visitor.context.AvroSchemaContext.AVRO_SCH
  * A visitor for creating AVRO schemas for beans.
  * The bean must have a {@link Avro} annotation.
  *
+ * @since 1.0
  */
 @Internal
 public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object> {

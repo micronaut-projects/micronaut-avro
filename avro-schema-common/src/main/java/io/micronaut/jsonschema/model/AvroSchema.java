@@ -9,6 +9,7 @@ import java.util.Locale;
 
 /**
  * It's Avro schema.
+ * @since 1.0
  */
 @Internal
 public final class AvroSchema {

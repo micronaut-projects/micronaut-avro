@@ -16,6 +16,10 @@ import java.math.BigInteger;
 import java.net.URL;
 import java.util.*;
 
+/***
+ * @since 1.0
+ */
+
 public class AvroSerdeEncoder implements Encoder {
 
     private final org.apache.avro.io.Encoder delegate;

@@ -9,6 +9,7 @@ import java.util.*;
 
 /**
  * A context with configuration for the Avro schema generation.
+ * @since 1.0
  *
  * @param outputLocation The location where Avro schemas will be generated inside the build {@code META-INF/} directory.
  * @param useDecimalLogicalType Whether to use logical type 'decimal' for BigDecimal fields.
