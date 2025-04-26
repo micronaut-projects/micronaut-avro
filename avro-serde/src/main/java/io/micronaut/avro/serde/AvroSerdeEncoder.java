@@ -3,9 +3,9 @@ package io.micronaut.avro.serde;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
-import io.micronaut.jsonschema.AvroSchemaSource;
-import io.micronaut.jsonschema.model.AvroSchema;
-import io.micronaut.jsonschema.serialization.AvroSchemaMapperFactory;
+import io.micronaut.avro.AvroSchemaSource;
+import io.micronaut.avro.model.AvroSchema;
+import io.micronaut.avro.serialization.AvroSchemaMapperFactory;
 import io.micronaut.serde.Encoder;
 
 import java.io.BufferedReader;

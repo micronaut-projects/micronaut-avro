@@ -1,4 +1,4 @@
-package io.micronaut.jsonschema.serialization;
+package io.micronaut.avro.serialization;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;

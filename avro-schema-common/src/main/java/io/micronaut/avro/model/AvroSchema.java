@@ -1,4 +1,4 @@
-package io.micronaut.jsonschema.model;
+package io.micronaut.avro.model;
 
 import com.fasterxml.jackson.annotation.*;
 import io.micronaut.core.annotation.Internal;

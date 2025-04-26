@@ -9,7 +9,7 @@
     </appender>
 
     <!-- This can be set to debug to view the generated JSON schemes -->
-    <logger name="io.micronaut.jsonschema.visitor.AbstractJsonSchemaSpec" level="debug" />
+    <logger name="io.micronaut.avro.visitor.AbstractJsonSchemaSpec" level="debug" />
 
     <root level="INFO">
         <appender-ref ref="STDOUT" />

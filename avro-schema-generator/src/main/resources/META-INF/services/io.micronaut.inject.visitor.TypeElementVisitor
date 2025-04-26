@@ -1,1 +1,1 @@
-io.micronaut.jsonschema.visitor.AvroSchemaVisitor
+io.micronaut.avro.visitor.AvroSchemaVisitor

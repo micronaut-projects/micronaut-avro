@@ -1,4 +1,4 @@
-package io.micronaut.jsonschema;
+package io.micronaut.avro;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

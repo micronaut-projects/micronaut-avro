@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.jsonschema;
+package io.micronaut.avro;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;

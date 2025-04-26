@@ -1,10 +1,10 @@
-package io.micronaut.jsonschema.visitor;
+package io.micronaut.avro.visitor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micronaut.annotation.processing.test.AbstractTypeElementSpec
-import io.micronaut.jsonschema.model.AvroSchema
-import io.micronaut.jsonschema.serialization.AvroSchemaMapperFactory;
-import io.micronaut.jsonschema.visitor.context.AvroSchemaContext;
+import io.micronaut.avro.model.AvroSchema
+import io.micronaut.avro.serialization.AvroSchemaMapperFactory;
+import io.micronaut.avro.visitor.context.AvroSchemaContext;
 import org.intellij.lang.annotations.Language;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

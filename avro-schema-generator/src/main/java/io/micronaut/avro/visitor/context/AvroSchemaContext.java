@@ -1,9 +1,9 @@
-package io.micronaut.jsonschema.visitor.context;
+package io.micronaut.avro.visitor.context;
 
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.visitor.VisitorContext;
-import io.micronaut.jsonschema.model.AvroSchema;
+import io.micronaut.avro.model.AvroSchema;
 
 import java.util.*;
 

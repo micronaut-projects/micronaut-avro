@@ -1,6 +1,6 @@
-package io.micronaut.jsonschema.visitor
+package io.micronaut.avro.visitor
 
-import io.micronaut.jsonschema.model.AvroSchema
+import io.micronaut.avro.model.AvroSchema
 
 class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
 

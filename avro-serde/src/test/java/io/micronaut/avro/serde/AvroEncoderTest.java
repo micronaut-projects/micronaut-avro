@@ -1,11 +1,7 @@
 package io.micronaut.avro.serde;
 import io.micronaut.core.type.Argument;
-import io.micronaut.jsonschema.Avro;
-import io.micronaut.jsonschema.AvroSchemaSource;
-import io.micronaut.jsonschema.model.AvroSchema;
+import io.micronaut.avro.AvroSchemaSource;
 import io.micronaut.serde.Encoder;
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import org.apache.avro.io.EncoderFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import java.io.ByteArrayOutputStream;
@@ -13,7 +9,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

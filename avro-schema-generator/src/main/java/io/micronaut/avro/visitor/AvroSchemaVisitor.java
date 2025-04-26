@@ -1,4 +1,4 @@
-package io.micronaut.jsonschema.visitor;
+package io.micronaut.avro.visitor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micronaut.core.annotation.AnnotationValue;
@@ -8,12 +8,12 @@ import io.micronaut.inject.ast.*;
 import io.micronaut.inject.visitor.TypeElementVisitor;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.inject.writer.GeneratedFile;
-import io.micronaut.jsonschema.Avro;
-import io.micronaut.jsonschema.model.AvroSchema;
-import io.micronaut.jsonschema.model.AvroSchema.Type;
-import io.micronaut.jsonschema.model.AvroSchema.LogicalType;
-import io.micronaut.jsonschema.serialization.AvroSchemaMapperFactory;
-import io.micronaut.jsonschema.visitor.context.AvroSchemaContext;
+import io.micronaut.avro.Avro;
+import io.micronaut.avro.model.AvroSchema;
+import io.micronaut.avro.model.AvroSchema.Type;
+import io.micronaut.avro.model.AvroSchema.LogicalType;
+import io.micronaut.avro.serialization.AvroSchemaMapperFactory;
+import io.micronaut.avro.visitor.context.AvroSchemaContext;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -22,7 +22,7 @@ import java.time.temporal.TemporalAmount;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.micronaut.jsonschema.visitor.context.AvroSchemaContext.AVRO_SCHEMA_CONTEXT_PROPERTY;
+import static io.micronaut.avro.visitor.context.AvroSchemaContext.AVRO_SCHEMA_CONTEXT_PROPERTY;
 
 
 /**
