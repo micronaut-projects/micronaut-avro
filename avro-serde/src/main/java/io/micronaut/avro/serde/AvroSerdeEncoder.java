@@ -20,7 +20,7 @@ import java.util.*;
  * @since 1.0
  */
 
-public class AvroSerdeEncoder implements Encoder {
+public final class AvroSerdeEncoder implements Encoder {
 
     private final org.apache.avro.io.Encoder delegate;
     private final boolean isArray;
