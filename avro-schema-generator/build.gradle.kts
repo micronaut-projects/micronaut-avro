@@ -7,4 +7,6 @@ dependencies {
 
     api(projects.micronautAvroSchemaCommon)
     api(projects.micronautAvroAnnotations)
+
+    testImplementation(mn.micronaut.inject.java.test)
 }
