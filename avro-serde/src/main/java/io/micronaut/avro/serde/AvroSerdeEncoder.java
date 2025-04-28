@@ -31,7 +31,7 @@ public class AvroSerdeEncoder implements Encoder {
     private final List<Runnable> arrayBuffer = new ArrayList<>();
     private String currentKey;
 
-    public AvroSerdeEncoder(org.apache.avro.io.Encoder delegate, boolean isArray, AvroSchema schema, AvroSerdeEncoder parent) {
+    private AvroSerdeEncoder(org.apache.avro.io.Encoder delegate, boolean isArray, AvroSchema schema, AvroSerdeEncoder parent) {
         this.delegate = delegate;
         this.isArray = isArray;
         this.schema = schema;
