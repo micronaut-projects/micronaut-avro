@@ -32,7 +32,7 @@ avro = "1.12.0"
 # Core
 micronaut-core = { module = 'io.micronaut:micronaut-core-bom', version.ref = 'micronaut' }
 micronaut-serde = { module = 'io.micronaut.serde:micronaut-serde-bom', version.ref = 'micronaut-serde' }
-avro = {module = 'org.apache.avro:avro', version.ref = 'avro'}
+avro = { module = 'org.apache.avro:avro', version.ref = 'avro' }
 
 #
 # Managed dependencies appear in the BOM
