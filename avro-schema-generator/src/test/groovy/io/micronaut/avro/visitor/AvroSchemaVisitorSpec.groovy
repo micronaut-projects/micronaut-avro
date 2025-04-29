@@ -9,7 +9,7 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
         def avroSchema = buildAvroSchema('test.me.models.Salamander', 'Salamander', """
         package test.me.models;
 
-        import io.micronaut.jsonschema.Avro;
+        import io.micronaut.avro.Avro;
         import java.util.*;
         import java.math.BigDecimal;
 
@@ -52,7 +52,7 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
         def avroSchema = buildAvroSchema('test.Salamander', 'salamander', """
         package test;
 
-        import io.micronaut.jsonschema.Avro;
+        import io.micronaut.avro.Avro;
         import java.time.LocalDate;
         import java.time.LocalTime;
         import java.util.*;
@@ -94,7 +94,7 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
         def avroSchema = buildAvroSchema('test.Salamander', 'salamander', """
         package test;
 
-        import io.micronaut.jsonschema.Avro;
+        import io.micronaut.avro.Avro;
         import java.time.LocalDate;
         import java.util.*;
         @Avro(
@@ -134,7 +134,7 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
         def avroSchema = buildAvroSchema('test.Salamander', 'Salamander', """
         package test;
 
-        import io.micronaut.jsonschema.Avro;
+        import io.micronaut.avro.Avro;
         import java.time.LocalDate;
         import java.util.*;
 
@@ -162,7 +162,7 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
         def avroSchema = buildAvroSchema('test.Salamander', 'Salamander', """
         package test;
 
-        import io.micronaut.jsonschema.Avro;
+        import io.micronaut.avro.Avro;
 
         import java.time.Duration;import java.time.LocalDate;import java.util.*;
 
@@ -201,13 +201,14 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
         def avroSchema = buildAvroSchema('test.Salamander', 'Salamander', """
         package dev.me.models;
 
-        import io.micronaut.jsonschema.Avro;
+        import io.micronaut.avro.Avro;
         import java.math.BigDecimal;
         import java.math.BigInteger;
         import java.sql.Timestamp;
         import java.time.Duration;
         import java.time.LocalDate;
-        import java.time.OffsetDateTime;import java.time.OffsetTime;
+        import java.time.OffsetDateTime;
+        import java.time.OffsetTime;
         import java.util.*;
 
         @Avro

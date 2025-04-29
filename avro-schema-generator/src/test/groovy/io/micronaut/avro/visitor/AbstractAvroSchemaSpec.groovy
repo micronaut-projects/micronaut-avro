@@ -46,7 +46,6 @@ abstract class AbstractAvroSchemaSpec extends AbstractTypeElementSpec {
             result.append(inputLine).append("\n")
         }
         reader.close()
-        println (result.toString())
         return result.toString()
     }
 }
