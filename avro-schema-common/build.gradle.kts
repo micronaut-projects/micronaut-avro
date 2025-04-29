@@ -3,4 +3,5 @@ plugins {
 }
 dependencies {
     api(mn.jackson.databind)
+    api(libs.serialization)
 }

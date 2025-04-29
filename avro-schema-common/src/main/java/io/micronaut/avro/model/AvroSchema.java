@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.serde.annotation.Serdeable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,7 @@ import java.util.Locale;
  * @since 1.0
  */
 @Internal
+@Serdeable
 public final class AvroSchema {
 
     private Object type;
