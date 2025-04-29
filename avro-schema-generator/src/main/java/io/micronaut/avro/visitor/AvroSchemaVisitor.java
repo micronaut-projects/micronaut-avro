@@ -158,7 +158,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
         if(type.getName().equals("java.math.BigDecimal")){
             if (context.useDecimalLogicalType()) {
                 avroSchema.setType(Type.STRING);
-                avroSchema.setJava_class(type.getCanonicalName());
+                avroSchema.setJavaClass(type.getCanonicalName());
                 avroSchema.setLogicalType(LogicalType.DECIMAL);
 
             } else {
@@ -168,17 +168,17 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
         else if (type.getName().equals("char") || type.getName().equals("java.lang.Character")) {
             avroSchema.setUnsupported(true);
             avroSchema.setType(Type.INT);
-            avroSchema.setJava_class("java.lang.Character");
+            avroSchema.setJavaClass("java.lang.Character");
         }
         else if (type.getName().equals("byte") || type.getName().equals("java.lang.Byte")) {
             avroSchema.setUnsupported(true);
             avroSchema.setType(Type.INT);
-            avroSchema.setJava_class("java.lang.Byte");
+            avroSchema.setJavaClass("java.lang.Byte");
         }
         else if (type.getName().equals("short") || type.getName().equals("java.lang.Short")) {
             avroSchema.setUnsupported(true);
             avroSchema.setType(Type.INT);
-            avroSchema.setJava_class("java.lang.Short");
+            avroSchema.setJavaClass("java.lang.Short");
         }
         else if (type.isAssignable(Map.class)) {
             avroSchema.setType(Type.MAP);
@@ -193,7 +193,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
         }
         else if (type.isAssignable(Collection.class)) {
             avroSchema.setType(Type.ARRAY);
-            avroSchema.setJava_class(type.getCanonicalName());
+            avroSchema.setJavaClass(type.getCanonicalName());
             ClassElement componentType = type.getTypeArguments().get("E");
             AvroSchema itemSchema = createSchema(componentType, visitorContext, context);
 
@@ -300,7 +300,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
                 // BigInteger doesn't have a specific logical type
                 avroSchema.setType(Type.STRING);
                 avroSchema.setUnsupported(true);
-                avroSchema.setJava_class(type.getCanonicalName());
+                avroSchema.setJavaClass(type.getCanonicalName());
             }
             default -> avroSchema.setType(Type.DOUBLE);
         }

@@ -97,8 +97,7 @@ public final class AvroSchema {
      */
     private Integer precision;
 
-    @JsonProperty("java-class")
-    private String java_class;
+    private String javaClass;
 
     /**
      * Creates an empty Avro schema.
@@ -112,12 +111,12 @@ public final class AvroSchema {
     public void setName(String name) {
         this.name = name;
     }
-    public String getJava_class() {
-        return java_class;
+    public String getJavaClass() {
+        return javaClass;
     }
 
-    public void setJava_class(String java_class) {
-        this.java_class = java_class;
+    public void setJavaClass(String javaClass) {
+        this.javaClass = javaClass;
     }
 
     public String getNamespace() {
