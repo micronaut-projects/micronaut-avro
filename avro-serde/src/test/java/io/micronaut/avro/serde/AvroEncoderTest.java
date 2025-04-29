@@ -24,7 +24,7 @@ public class AvroEncoderTest {
         try(AvroSerdeEncoder avroEncoder = new AvroSerdeEncoder(encoder)){
             avroEncoder.encodeString("foo");
         }
-
+        encoder.flush();
         byte[] encodedBytes = outputStream.toByteArray();
         assertEquals("[6, 102, 111, 111]", Arrays.toString(encodedBytes));
         System.out.println(Arrays.toString(encodedBytes));
@@ -37,7 +37,7 @@ public class AvroEncoderTest {
         try(AvroSerdeEncoder avroEncoder = new AvroSerdeEncoder(encoder)){
             avroEncoder.encodeString("");
         }
-
+        encoder.flush();
         byte[] encodedBytes = outputStream.toByteArray();
         System.out.println(Arrays.toString(encodedBytes));
         assertEquals("[0]", Arrays.toString(encodedBytes));
@@ -50,7 +50,7 @@ public class AvroEncoderTest {
         try(AvroSerdeEncoder avroEncoder = new AvroSerdeEncoder(encoder)){
             avroEncoder.encodeInt(10);
         }
-
+        encoder.flush();
         byte[] encodedBytes = outputStream.toByteArray();
         assertEquals("[20]", Arrays.toString(encodedBytes));
     }
@@ -73,7 +73,7 @@ public class AvroEncoderTest {
             encoder.encodeBigDecimal(new BigDecimal("123.456"));
 
         }
-
+        binaryEncoder.flush();
         byte[] encodedBytes = outputStream.toByteArray();
         assertEquals("[24, 14, 49, 50, 51, 46, 52, 53, 54, 1, 0, 0, -72, 65, 6, 102, 111, 111]", Arrays.toString(encodedBytes));
 
