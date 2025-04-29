@@ -17,6 +17,10 @@ import java.net.URL;
 import java.util.*;
 
 /***
+ * Avro Implementation of {@link Encoder}
+ * This class provides methods for encoding data into Avro format.
+ *
+ * @author Ali Linaboui
  * @since 1.0
  */
 
@@ -38,6 +42,11 @@ public final class AvroSerdeEncoder implements Encoder {
         this.parent = parent;
     }
 
+    /**
+     * Constructs a new AvroSerdeEncoder instance.
+     *
+     * @param delegate Delegate encoder used for actual encoding.
+     */
     public AvroSerdeEncoder(org.apache.avro.io.Encoder delegate) {
         this(delegate, false, null, null);
     }
@@ -297,6 +306,11 @@ public final class AvroSerdeEncoder implements Encoder {
         });
     }
 
+    /**
+     * Buffers the given value writer.
+     *
+     * @param valueWriter Value writer to buffer.
+     */
     private void buffer(Runnable valueWriter) {
         if (isArray) {
             arrayBuffer.add(() -> {
@@ -341,6 +355,13 @@ public final class AvroSerdeEncoder implements Encoder {
         return result.toString();
     }
 
+    /**
+     * Validates the given value against the expected Avro type.
+     *
+     * @param value Value to validate.
+     * @param expectedType Expected Avro type.
+     * @throws IOException If the value does not match the expected type.
+     */
     private void validateType(Object value, AvroSchema.Type expectedType) throws IOException {
         if (value == null) {
             return; // null is allowed — Avro handles union with null
