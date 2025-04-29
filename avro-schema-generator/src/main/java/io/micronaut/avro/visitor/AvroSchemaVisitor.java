@@ -51,6 +51,7 @@ import static io.micronaut.avro.visitor.context.AvroSchemaContext.AVRO_SCHEMA_CO
  * The bean must have a {@link Avro} annotation.
  *
  * @since 1.0
+ * @author Ali Linaboui
  */
 @Internal
 public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object> {
@@ -155,7 +156,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
     private static void setSchemaType(TypedElement element, VisitorContext visitorContext, AvroSchemaContext context, AvroSchema avroSchema) {
         ClassElement type = element.getGenericType();
 
-        if(type.getName().equals("java.math.BigDecimal")){
+        if (type.getName().equals("java.math.BigDecimal")) {
             if (context.useDecimalLogicalType()) {
                 avroSchema.setType(Type.STRING);
                 avroSchema.setJavaClass(type.getCanonicalName());
@@ -164,23 +165,19 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
             } else {
                 avroSchema.setType(Type.STRING);
             }
-        }
-        else if (type.getName().equals("char") || type.getName().equals("java.lang.Character")) {
+        } else if (type.getName().equals("char") || type.getName().equals("java.lang.Character")) {
             avroSchema.setUnsupported(true);
             avroSchema.setType(Type.INT);
             avroSchema.setJavaClass("java.lang.Character");
-        }
-        else if (type.getName().equals("byte") || type.getName().equals("java.lang.Byte")) {
+        } else if (type.getName().equals("byte") || type.getName().equals("java.lang.Byte")) {
             avroSchema.setUnsupported(true);
             avroSchema.setType(Type.INT);
             avroSchema.setJavaClass("java.lang.Byte");
-        }
-        else if (type.getName().equals("short") || type.getName().equals("java.lang.Short")) {
+        } else if (type.getName().equals("short") || type.getName().equals("java.lang.Short")) {
             avroSchema.setUnsupported(true);
             avroSchema.setType(Type.INT);
             avroSchema.setJavaClass("java.lang.Short");
-        }
-        else if (type.isAssignable(Map.class)) {
+        } else if (type.isAssignable(Map.class)) {
             avroSchema.setType(Type.MAP);
             ClassElement valueType = type.getTypeArguments().get("V");
             AvroSchema valueSchema = createSchema(valueType, visitorContext, context);
@@ -190,8 +187,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
             } else {
                 avroSchema.setValues(valueSchema);
             }
-        }
-        else if (type.isAssignable(Collection.class)) {
+        } else if (type.isAssignable(Collection.class)) {
             avroSchema.setType(Type.ARRAY);
             avroSchema.setJavaClass(type.getCanonicalName());
             ClassElement componentType = type.getTypeArguments().get("E");
@@ -203,40 +199,32 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
             } else {
                 avroSchema.setItems(itemSchema);
             }
-        }
-        else if (!type.isPrimitive() && type.getRawClassElement() instanceof EnumElement enumElement) {
+        } else if (!type.isPrimitive() && type.getRawClassElement() instanceof EnumElement enumElement) {
             avroSchema.setType(Type.ENUM);
             avroSchema.setName(element.getSimpleName());
             for (String value : enumElement.values()) {
                 avroSchema.addSymbol(value);
             }
             context.currentOriginatingElements().add(enumElement);
-        }
-        else if (isPrimitiveType(type)) {
+        } else if (isPrimitiveType(type)) {
                 avroSchema.setType(getPrimitiveAvroType(type.getName()));
 
         } else if (type.isAssignable(Number.class)) {
             setNumericType(type, avroSchema, context);
-        }
-        else if (type.isAssignable(CharSequence.class)) {
+        } else if (type.isAssignable(CharSequence.class)) {
             avroSchema.setType(Type.STRING);
-        }
-        else if (type.getName().equals("boolean") || type.getName().equals("java.lang.Boolean")) {
+        } else if (type.getName().equals("boolean") || type.getName().equals("java.lang.Boolean")) {
             avroSchema.setType(Type.BOOLEAN);
-        }
-        else if (type.isAssignable(Temporal.class) || type.isAssignable(TemporalAmount.class)) {
+        } else if (type.isAssignable(Temporal.class) || type.isAssignable(TemporalAmount.class)) {
             setTemporalType(type, avroSchema, context);
-        }
-        else if (type.isAssignable(UUID.class)) {
+        } else if (type.isAssignable(UUID.class)) {
             avroSchema.setType(Type.STRING);
             if (context.useLogicalTypes()) {
                 avroSchema.setLogicalType(AvroSchema.LogicalType.UUID);
             }
-        }
-        else if (type.getName().equals("void") || type.getName().equals("java.lang.Void")) {
+        } else if (type.getName().equals("void") || type.getName().equals("java.lang.Void")) {
             avroSchema.setType(Type.NULL);
-        }
-        else if (!type.isPrimitive()) {
+        } else if (!type.isPrimitive()) {
             setBeanSchemaFields(type, visitorContext, context, avroSchema);
         }
     }
@@ -261,10 +249,8 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
                 if (context.useTimeMillisLogicalType()) {
                     avroSchema.setLogicalType(LogicalType.TIME_MILLIS);
                 }
-
-
             }
-            case "java.time.LocalDateTime", "java.time.ZonedDateTime", "java.time.OffsetDateTime" ,"java.time.OffsetTime" -> {
+            case "java.time.LocalDateTime", "java.time.ZonedDateTime", "java.time.OffsetDateTime" , "java.time.OffsetTime" -> {
                 avroSchema.setType(Type.LONG);
                 if (context.useTimestampMillisLogicalType()) {
                     avroSchema.setLogicalType(LogicalType.TIMESTAMP_MILLIS);
@@ -275,7 +261,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
                     avroSchema.setType(Type.FIXED);
                     avroSchema.setSize(12); // Duration is 12 bytes
                     avroSchema.setLogicalType(LogicalType.DURATION);
-                }else {
+                } else {
                     avroSchema.setType(Type.LONG);
                 }
             }
@@ -364,9 +350,9 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
 
     private static String getFileName(AvroSchema avroSchema) {
         String fileName;
-        if(avroSchema.getFullName() != null) {
+        if (avroSchema.getFullName() != null) {
             fileName = avroSchema.getFullName();
-        }else {
+        } else {
             fileName = avroSchema.getName();
         }
         fileName = fileName.replace('.', '/');

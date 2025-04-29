@@ -16,7 +16,6 @@
 package io.micronaut.avro.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import io.micronaut.core.annotation.Internal;
@@ -27,7 +26,9 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * It's Avro schema.
+ * Represents an Avro schema, which defines the structure of data in Avro format.
+ *
+ * @author Ali Linaboui
  * @since 1.0
  */
 @Internal
@@ -46,37 +47,37 @@ public final class AvroSchema {
     @JsonIgnore
     private boolean refType;
     /**
-     * For record Type
+     * For record Type.
      */
     private List<Field> fields;
 
     /**
-     * For enum Type
+     * For enum Type.
      */
     private List<String> symbols;
 
     /**
-     * For array Type
+     * For array Type.
      */
     private Object items;
 
     /**
-     * For map Type
+     * For map Type.
      */
     private Object values;
 
     /**
-     * For fixed type
+     * For fixed type.
      */
     private Integer size;
 
     /**
-     * For union type
+     * For union type.
      */
     private List<AvroSchema> types;
 
     /**
-     * Default value
+     * Default value.
      */
     private Object defaultValue;
 
@@ -86,13 +87,13 @@ public final class AvroSchema {
     private LogicalType logicalType;
 
     /**
-     * for Decimal logical type
+     * for Decimal logical type.
      * representing the scale (optional). If not specified the scale is 0.
      */
     private Integer scale;
 
     /**
-     * for Decimal logical type
+     * for Decimal logical type.
      * representing the (maximum) precision of decimals stored in this type (required).
      */
     private Integer precision;
@@ -102,7 +103,7 @@ public final class AvroSchema {
     /**
      * Creates an empty Avro schema.
      */
-    public AvroSchema() {}
+    public AvroSchema() { }
 
     public String getName() {
         return name;
@@ -111,6 +112,7 @@ public final class AvroSchema {
     public void setName(String name) {
         this.name = name;
     }
+
     public String getJavaClass() {
         return javaClass;
     }
@@ -130,7 +132,6 @@ public final class AvroSchema {
     public String getFullName() {
         return fullName;
     }
-
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
@@ -179,6 +180,7 @@ public final class AvroSchema {
         this.fields = fields;
         return this;
     }
+
     public AvroSchema addField(Field field) {
         if (fields == null) {
             fields = new ArrayList<>();
@@ -186,7 +188,6 @@ public final class AvroSchema {
         fields.add(field);
         return this;
     }
-
 
     public List<String> getSymbols() {
         return symbols;
@@ -288,9 +289,10 @@ public final class AvroSchema {
         this.unsupported = unsupported;
     }
 
-    public final static class Field {
-
-        public Field(){};
+    /**
+     * Represents a field in an Avro schema.
+     */
+    public static final class Field {
 
         private String name;
         private String doc;
@@ -298,6 +300,8 @@ public final class AvroSchema {
         private Order order;
         private List<String> aliases;
         private Object defaultValue;
+
+        public Field() { }
 
         public String getName() {
             return name;
@@ -360,7 +364,7 @@ public final class AvroSchema {
     }
 
     /**
-     * The sort order of a record field.
+     * Enumerates the possible orders of a record field.
      */
     public enum Order {
         ASCENDING,
@@ -398,7 +402,7 @@ public final class AvroSchema {
         MAP,
         /** A union of schemas.  */
         UNION,
-        /** An integer, specifying the number of bytes per value */
+        /** An integer, specifying the number of bytes per value. */
         FIXED;
 
         @JsonValue

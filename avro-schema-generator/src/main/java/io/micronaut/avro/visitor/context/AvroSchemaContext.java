@@ -28,7 +28,9 @@ import java.util.Set;
 
 /**
  * A context with configuration for the Avro schema generation.
+ *
  * @since 1.0
+ * @author Ali Linaboui
  *
  * @param outputLocation The location where Avro schemas will be generated inside the build {@code META-INF/} directory.
  * @param useDecimalLogicalType Whether to use logical type 'decimal' for BigDecimal fields.
@@ -67,8 +69,6 @@ public record AvroSchemaContext(
     public static final String USE_ENUM_SYMBOLS_PARAMETER = PARAMETER_PREFIX + "useEnumSymbols";
     public static final String STRICT_MODE_PARAMETER = PARAMETER_PREFIX + "strictMode";
     public static final String BASE_URI_PARAMETER = PARAMETER_PREFIX + "baseUri";
-    private static final String DEFAULT_BASE_URL = "http://localhost:8080/avro-schemas";
-
     public static final String DEFAULT_OUTPUT_LOCATION = "avro-schemas";
     public static final boolean DEFAULT_USE_DECIMAL_LOGICAL_TYPE = true;
     public static final boolean DEFAULT_USE_TIME_MILLIS_LOGICAL_TYPE = true;
@@ -76,6 +76,8 @@ public record AvroSchemaContext(
     public static final boolean DEFAULT_USE_LOGICAL_TYPES = true;
     public static final boolean DEFAULT_USE_ENUM_SYMBOLS = true;
     public static final boolean DEFAULT_STRICT_MODE = false;
+    private static final String DEFAULT_BASE_URL = "http://localhost:8080/avro-schemas";
+
 
     public static Set<String> getParameters() {
         return Set.of(

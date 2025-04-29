@@ -78,7 +78,7 @@ public final class AvroSerdeEncoder implements Encoder {
 
         EncodingRunnable arrayWriter = () -> {
             delegate.writeArrayStart();
-            if (!child.arrayBuffer.isEmpty()){
+            if (!child.arrayBuffer.isEmpty()) {
                 delegate.setItemCount(child.arrayBuffer.size());
                 for (EncodingRunnable r : child.arrayBuffer) {
                     delegate.startItem();
@@ -104,7 +104,6 @@ public final class AvroSerdeEncoder implements Encoder {
 
         return child;
     }
-
 
     @Override
     public @NonNull Encoder encodeObject(@NonNull Argument<?> type) throws IOException {
@@ -288,7 +287,7 @@ public final class AvroSerdeEncoder implements Encoder {
     /**
      * Validates the given value against the expected Avro type.
      *
-     * @param value Value to validate.
+     * @param value        Value to validate.
      * @param expectedType Expected Avro type.
      * @throws IOException If the value does not match the expected type.
      */
@@ -297,25 +296,28 @@ public final class AvroSerdeEncoder implements Encoder {
             return; // null is allowed — Avro handles union with null
         }
 
-        boolean valid;
-        switch (expectedType) {
-            case STRING -> valid = value instanceof String;
-            case BOOLEAN -> valid = value instanceof Boolean;
-            case INT -> valid = value instanceof Integer || value instanceof Short || value instanceof Byte || value instanceof Character;
-            case LONG -> valid = value instanceof Long;
-            case FLOAT -> valid = value instanceof Float;
-            case DOUBLE -> valid = value instanceof Double;
-            case BYTES, FIXED -> valid = value instanceof byte[] || value instanceof Byte[];
-            case NULL -> valid = false;
-            case ARRAY -> valid = value instanceof Collection;
-            case RECORD -> valid = value instanceof Map || value instanceof Record;
-            case ENUM -> valid = value instanceof Enum<?>;
-            default -> throw new IOException("Unknown Avro type: " + expectedType);
-        }
+        boolean isValid = isValidType(value, expectedType);
 
-        if (!valid) {
+        if (!isValid) {
             throw new IOException("Invalid value type. Expected: " + expectedType + ", but got: " + value.getClass().getSimpleName());
         }
+    }
+
+    private boolean isValidType(Object value, AvroSchema.Type expectedType) throws IOException {
+        return switch (expectedType) {
+            case STRING -> value instanceof String;
+            case BOOLEAN -> value instanceof Boolean;
+            case INT -> value instanceof Integer || value instanceof Short || value instanceof Byte || value instanceof Character;
+            case LONG -> value instanceof Long;
+            case FLOAT -> value instanceof Float;
+            case DOUBLE -> value instanceof Double;
+            case BYTES, FIXED -> value instanceof byte[] || value instanceof Byte[];
+            case NULL -> false;
+            case ARRAY -> value instanceof Collection;
+            case RECORD -> value instanceof Map || value instanceof Record;
+            case ENUM -> value instanceof Enum;
+            default -> throw new IOException("Unknown Avro type: " + expectedType);
+        };
     }
 
 }

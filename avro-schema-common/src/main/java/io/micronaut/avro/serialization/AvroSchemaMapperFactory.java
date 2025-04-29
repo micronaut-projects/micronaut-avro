@@ -21,6 +21,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import io.micronaut.core.annotation.Internal;
 
+/**
+ * A factory class responsible for creating instances of {@link ObjectMapper}
+ * configured for working with Avro schemas.
+ *
+ * @author Ali Linaboui
+ * @since 1.0
+ */
 @Internal
 public class AvroSchemaMapperFactory {
 
