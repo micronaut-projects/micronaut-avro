@@ -138,7 +138,6 @@ public final class AvroSerdeEncoder implements Encoder {
                         throw new IOException("Missing field: " + field.getName());
                     }
                     // Check field type
-                    System.out.println(field.getType());
                     if (field.getType() instanceof AvroSchema fieldSchema) {
                         if (fieldSchema.getType().equals("array")) {
                             // Handle nested array
