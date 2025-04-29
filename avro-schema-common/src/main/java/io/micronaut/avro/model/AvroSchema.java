@@ -15,7 +15,10 @@
  */
 package io.micronaut.avro.model;
 
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import io.micronaut.core.annotation.Internal;
 
 import java.util.ArrayList;

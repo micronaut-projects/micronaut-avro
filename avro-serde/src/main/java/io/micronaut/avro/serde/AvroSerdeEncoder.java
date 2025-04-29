@@ -29,7 +29,13 @@ import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Collection;
+import java.util.TreeMap;
+import java.util.Iterator;
 
 /***
  * Avro Implementation of {@link Encoder}

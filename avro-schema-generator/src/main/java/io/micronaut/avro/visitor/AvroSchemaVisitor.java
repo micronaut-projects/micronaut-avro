@@ -34,7 +34,13 @@ import java.io.IOException;
 import java.io.Writer;
 import java.time.temporal.Temporal;
 import java.time.temporal.TemporalAmount;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.Map;
+import java.util.Collection;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static io.micronaut.avro.visitor.context.AvroSchemaContext.AVRO_SCHEMA_CONTEXT_PROPERTY;
