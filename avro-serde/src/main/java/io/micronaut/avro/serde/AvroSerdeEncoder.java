@@ -31,8 +31,8 @@ public final class AvroSerdeEncoder implements Encoder {
     private final AvroSchema schema;
     private final AvroSerdeEncoder parent;
 
-    private final Map<String, Runnable> objectBuffer = new TreeMap<>();
-    private final List<Runnable> arrayBuffer = new ArrayList<>();
+    private final Map<String, EncodingRunnable> objectBuffer = new TreeMap<>();
+    private final List<EncodingRunnable> arrayBuffer = new ArrayList<>();
     private String currentKey;
 
     private AvroSerdeEncoder(org.apache.avro.io.Encoder delegate, boolean isArray, AvroSchema schema, AvroSerdeEncoder parent) {
@@ -55,31 +55,23 @@ public final class AvroSerdeEncoder implements Encoder {
     public @NonNull Encoder encodeArray(@NonNull Argument<?> type) throws IOException {
         AvroSerdeEncoder child = new AvroSerdeEncoder(delegate, true, null, this);
 
-        Runnable arrayWriter = () -> {
-            try {
-                delegate.writeArrayStart();
-                if (!child.arrayBuffer.isEmpty()){
-                    delegate.setItemCount(child.arrayBuffer.size());
-                    for (Runnable r : child.arrayBuffer) {
-                        delegate.startItem();
-                        r.run();
-                    }
-                    delegate.writeArrayEnd();
+        EncodingRunnable arrayWriter = () -> {
+            delegate.writeArrayStart();
+            if (!child.arrayBuffer.isEmpty()){
+                delegate.setItemCount(child.arrayBuffer.size());
+                for (EncodingRunnable r : child.arrayBuffer) {
+                    delegate.startItem();
+                    r.run();
                 }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+                delegate.writeArrayEnd();
             }
         };
 
         if (isArray) {
             // If we're inside an array, buffer the nested array as an item
             arrayBuffer.add(() -> {
-                try {
-                    delegate.startItem();
-                    arrayWriter.run();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                delegate.startItem();
+                arrayWriter.run();
             });
         } else if (currentKey != null) {
             objectBuffer.put(currentKey, arrayWriter);
@@ -111,7 +103,7 @@ public final class AvroSerdeEncoder implements Encoder {
     public void finishStructure() throws IOException {
         if (isArray) {
             delegate.setItemCount(arrayBuffer.size());
-            for (Runnable r : arrayBuffer) {
+            for (EncodingRunnable r : arrayBuffer) {
                 delegate.startItem();
                 r.run();
             }
@@ -120,7 +112,7 @@ public final class AvroSerdeEncoder implements Encoder {
         } else {
             if (schema != null) {
                 for (AvroSchema.Field field : schema.getFields()) {
-                    Runnable fieldEncoder = objectBuffer.get(field.getName());
+                    EncodingRunnable fieldEncoder = objectBuffer.get(field.getName());
                     if (fieldEncoder == null) {
                         throw new IOException("Missing field: " + field.getName());
                     }
@@ -143,7 +135,7 @@ public final class AvroSerdeEncoder implements Encoder {
                 }
             } else {
                 // If there's no schema, just finish encoding the object buffer.
-                for (Map.Entry<String, Runnable> entry : objectBuffer.entrySet()) {
+                for (Map.Entry<String, EncodingRunnable> entry : objectBuffer.entrySet()) {
                     entry.getValue().run();
                 }
             }
@@ -166,144 +158,72 @@ public final class AvroSerdeEncoder implements Encoder {
     @Override
     public void encodeString(@NonNull String value) throws IOException {
         validateType(value, AvroSchema.Type.STRING);
-        buffer(() -> {
-            try {
-                delegate.writeString(value);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        buffer(() -> delegate.writeString(value));
     }
 
     @Override
     public void encodeBoolean(boolean value) throws IOException {
         validateType(value, AvroSchema.Type.BOOLEAN);
-        buffer(() -> {
-            try {
-                delegate.writeBoolean(value);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        buffer(() -> delegate.writeBoolean(value));
     }
 
     @Override
     public void encodeByte(byte value) throws IOException {
         validateType(value, AvroSchema.Type.INT);
-        buffer(() -> {
-            try {
-                delegate.writeFixed(new byte[]{value});
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        buffer(() -> delegate.writeFixed(new byte[]{value}));
     }
 
     @Override
     public void encodeShort(short value) throws IOException {
         validateType(value, AvroSchema.Type.INT);
-        buffer(() -> {
-            try {
-                delegate.writeInt(value);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        buffer(() -> delegate.writeInt(value));
     }
 
     @Override
     public void encodeChar(char value) throws IOException {
         validateType(value, AvroSchema.Type.STRING);
-        buffer(() -> {
-            try {
-                delegate.writeInt(value);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        buffer(() -> delegate.writeInt(value));
     }
 
     @Override
     public void encodeInt(int value) throws IOException {
         validateType(value, AvroSchema.Type.INT);
-        buffer(() -> {
-            try {
-                delegate.writeInt(value);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        buffer(() -> delegate.writeInt(value));
     }
 
     @Override
     public void encodeLong(long value) throws IOException {
         validateType(value, AvroSchema.Type.LONG);
-        buffer(() -> {
-            try {
-                delegate.writeLong(value);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        buffer(() -> delegate.writeLong(value));
     }
 
     @Override
     public void encodeFloat(float value) throws IOException {
         validateType(value, AvroSchema.Type.FLOAT);
-        buffer(() -> {
-            try {
-                delegate.writeFloat(value);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        buffer(() -> delegate.writeFloat(value));
     }
 
     @Override
     public void encodeDouble(double value) throws IOException {
         validateType(value, AvroSchema.Type.DOUBLE);
-        buffer(() -> {
-            try {
-                delegate.writeDouble(value);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        buffer(() -> delegate.writeDouble(value));
     }
 
     @Override
     public void encodeBigInteger(@NonNull BigInteger value) throws IOException {
         validateType(value, AvroSchema.Type.LONG);
-        buffer(() -> {
-            try {
-                delegate.writeBytes(value.toByteArray());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        buffer(() -> delegate.writeBytes(value.toByteArray()));
     }
 
     @Override
     public void encodeBigDecimal(@NonNull BigDecimal value) throws IOException {
         validateType(value, AvroSchema.Type.STRING);
-        buffer(() -> {
-            try {
-                delegate.writeString(value.toPlainString());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        buffer(() -> delegate.writeString(value.toPlainString()));
     }
 
     @Override
     public void encodeNull() throws IOException {
-        buffer(() -> {
-            try {
-                delegate.writeNull();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        buffer(delegate::writeNull);
     }
 
     /**
@@ -311,7 +231,7 @@ public final class AvroSerdeEncoder implements Encoder {
      *
      * @param valueWriter Value writer to buffer.
      */
-    private void buffer(Runnable valueWriter) {
+    private void buffer(EncodingRunnable valueWriter) throws IOException {
         if (isArray) {
             arrayBuffer.add(() -> {
                 try {
@@ -322,20 +242,10 @@ public final class AvroSerdeEncoder implements Encoder {
                 }
             });
         } else if (currentKey != null) {
-            objectBuffer.put(currentKey, () -> {
-                try {
-                    valueWriter.run();
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            });
+            objectBuffer.put(currentKey, valueWriter);
             currentKey = null;
         } else {
-            try {
-                valueWriter.run();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+            valueWriter.run();
         }
     }
 
