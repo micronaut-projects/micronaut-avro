@@ -269,7 +269,7 @@ public final class AvroSchema {
         this.unsupported = unsupported;
     }
 
-    public static class Field {
+    public final static class Field {
 
         public Field(){};
 
