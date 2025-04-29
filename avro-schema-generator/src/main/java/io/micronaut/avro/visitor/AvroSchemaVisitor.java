@@ -16,30 +16,33 @@
 package io.micronaut.avro.visitor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micronaut.avro.Avro;
+import io.micronaut.avro.model.AvroSchema;
+import io.micronaut.avro.model.AvroSchema.LogicalType;
+import io.micronaut.avro.model.AvroSchema.Type;
+import io.micronaut.avro.serialization.AvroSchemaMapperFactory;
+import io.micronaut.avro.visitor.context.AvroSchemaContext;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
-import io.micronaut.inject.ast.*;
+import io.micronaut.inject.ast.ClassElement;
+import io.micronaut.inject.ast.EnumElement;
+import io.micronaut.inject.ast.PropertyElement;
+import io.micronaut.inject.ast.TypedElement;
 import io.micronaut.inject.visitor.TypeElementVisitor;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.inject.writer.GeneratedFile;
-import io.micronaut.avro.Avro;
-import io.micronaut.avro.model.AvroSchema;
-import io.micronaut.avro.model.AvroSchema.Type;
-import io.micronaut.avro.model.AvroSchema.LogicalType;
-import io.micronaut.avro.serialization.AvroSchemaMapperFactory;
-import io.micronaut.avro.visitor.context.AvroSchemaContext;
 
 import java.io.IOException;
 import java.io.Writer;
 import java.time.temporal.Temporal;
 import java.time.temporal.TemporalAmount;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.Map;
-import java.util.Collection;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -50,8 +53,8 @@ import static io.micronaut.avro.visitor.context.AvroSchemaContext.AVRO_SCHEMA_CO
  * A visitor for creating AVRO schemas for beans.
  * The bean must have a {@link Avro} annotation.
  *
- * @since 1.0
  * @author Ali Linaboui
+ * @since 1.0
  */
 @Internal
 public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object> {
@@ -87,9 +90,9 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
      * A method for creating a AVRO schema. The schema will always a top-level schema and
      * never a reference.
      *
-     * @param element The element
+     * @param element        The element
      * @param visitorContext The visitor context
-     * @param context The Avro schema creation context
+     * @param context        The Avro schema creation context
      * @return The schema
      */
     private static AvroSchema createTopLevelSchema(TypedElement element, VisitorContext visitorContext, AvroSchemaContext context) {
@@ -127,9 +130,9 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
     /**
      * A method for creating a field of the schema.
      *
-     * @param element The element
+     * @param element        The element
      * @param visitorContext The visitor context
-     * @param context The JSON schema creation context
+     * @param context        The JSON schema creation context
      * @return The schema
      */
     private static AvroSchema createSchema(TypedElement element, VisitorContext visitorContext, AvroSchemaContext context) {
@@ -207,7 +210,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
             }
             context.currentOriginatingElements().add(enumElement);
         } else if (isPrimitiveType(type)) {
-                avroSchema.setType(getPrimitiveAvroType(type.getName()));
+            avroSchema.setType(getPrimitiveAvroType(type.getName()));
 
         } else if (type.isAssignable(Number.class)) {
             setNumericType(type, avroSchema, context);
@@ -232,9 +235,9 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
     /**
      * Sets temporal type for the schema based on the Java type.
      *
-     * @param type The class element representing the type
+     * @param type       The class element representing the type
      * @param avroSchema The schema to configure
-     * @param context The Avro schema creation context
+     * @param context    The Avro schema creation context
      */
     private static void setTemporalType(ClassElement type, AvroSchema avroSchema, AvroSchemaContext context) {
         switch (type.getName()) {
@@ -250,7 +253,8 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
                     avroSchema.setLogicalType(LogicalType.TIME_MILLIS);
                 }
             }
-            case "java.time.LocalDateTime", "java.time.ZonedDateTime", "java.time.OffsetDateTime" , "java.time.OffsetTime" -> {
+            case "java.time.LocalDateTime", "java.time.ZonedDateTime", "java.time.OffsetDateTime",
+                 "java.time.OffsetTime" -> {
                 avroSchema.setType(Type.LONG);
                 if (context.useTimestampMillisLogicalType()) {
                     avroSchema.setLogicalType(LogicalType.TIMESTAMP_MILLIS);
@@ -272,9 +276,9 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
     /**
      * Sets numeric type for the schema based on the Java type.
      *
-     * @param type The class element representing the type
+     * @param type       The class element representing the type
      * @param avroSchema The schema to configure
-     * @param context The Avro schema creation context
+     * @param context    The Avro schema creation context
      */
     private static void setNumericType(ClassElement type, AvroSchema avroSchema, AvroSchemaContext context) {
         switch (type.getName()) {
@@ -381,7 +385,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
     private static boolean isPrimitiveType(ClassElement type) {
         String typeName = type.getName();
         return typeName.equals("int") || typeName.equals("float") || typeName.equals("double") ||
-            typeName.equals("long") || typeName.equals("boolean")  || typeName.equals("void");
+            typeName.equals("long") || typeName.equals("boolean") || typeName.equals("void");
     }
 
     // Helper method to check if an Avro Type is primitive
