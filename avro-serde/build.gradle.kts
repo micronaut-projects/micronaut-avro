@@ -6,5 +6,5 @@ dependencies {
     api(mnSerde.micronaut.serde.api)
     api(libs.avro)
     api(projects.micronautAvroAnnotations)
-    api(projects.micronautAvroSchemaCommon)
+    implementation(projects.micronautAvroSchemaCommon)
 }

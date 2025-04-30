@@ -292,6 +292,7 @@ public final class AvroSchema {
     /**
      * Represents a field in an Avro schema.
      */
+    @Serdeable
     public static final class Field {
 
         private String name;

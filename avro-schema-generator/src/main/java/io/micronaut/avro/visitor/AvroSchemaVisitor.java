@@ -15,7 +15,7 @@
  */
 package io.micronaut.avro.visitor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micronaut.serde.ObjectMapper;
 import io.micronaut.avro.Avro;
 import io.micronaut.avro.model.AvroSchema;
 import io.micronaut.avro.model.AvroSchema.LogicalType;
@@ -345,7 +345,8 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
                     .sorted(Comparator.comparing(AvroSchema.Field::getName))
                     .collect(Collectors.toList());
                 avroSchema.setFields(sortedFields);
-                mapper.writeValue(writer, avroSchema);
+                String schema = mapper.writeValueAsString(avroSchema);
+                writer.write(schema);
             } catch (IOException e) {
                 throw new RuntimeException("Failed writing Avro schema " + specFile.getName() + " file: " + e, e);
             }

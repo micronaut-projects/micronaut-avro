@@ -15,7 +15,7 @@
  */
 package io.micronaut.avro.serde;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micronaut.serde.ObjectMapper;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.avro.AvroSchemaSource;

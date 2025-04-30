@@ -2,6 +2,6 @@ plugins {
     id("io.micronaut.build.internal.avro-module")
 }
 dependencies {
-    api(mn.jackson.databind)
-    api(libs.serialization)
+    annotationProcessor(mnSerde.micronaut.serde.processor)
+    implementation(mnSerde.micronaut.serde.jackson)
 }

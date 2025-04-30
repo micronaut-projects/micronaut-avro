@@ -1,6 +1,6 @@
 package io.micronaut.avro.visitor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micronaut.serde.ObjectMapper;
 import io.micronaut.annotation.processing.test.AbstractTypeElementSpec
 import io.micronaut.avro.model.AvroSchema
 import io.micronaut.avro.serialization.AvroSchemaMapperFactory;
