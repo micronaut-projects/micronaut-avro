@@ -78,7 +78,6 @@ public record AvroSchemaContext(
     public static final boolean DEFAULT_STRICT_MODE = false;
     private static final String DEFAULT_BASE_URL = "http://localhost:8080/avro-schemas";
 
-
     public static Set<String> getParameters() {
         return Set.of(
                 OUTPUT_LOCATION_PARAMETER,
