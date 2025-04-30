@@ -5,6 +5,6 @@ plugins {
 dependencies {
     api(mnSerde.micronaut.serde.api)
     api(libs.avro)
-    api(projects.micronautAvroAnnotations)
+    implementation(projects.micronautAvroAnnotations)
     implementation(projects.micronautAvroSchemaCommon)
 }

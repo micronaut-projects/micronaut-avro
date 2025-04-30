@@ -115,6 +115,7 @@ public class AvroEncoderTest {
                 array.encodeInt(coords[5]);
 
             }
+            binaryEncoder.flush();
             // Inspect raw bytes
             byte[] actualResult = outputStream.toByteArray();
             Assertions.assertNotNull(actualResult);
@@ -160,6 +161,7 @@ public class AvroEncoderTest {
                 array.encodeKey("age");
                 array.encodeInt(male.getAge());
             }
+            binaryEncoder.flush();
             // Inspect raw bytes
             byte[] avroData = out.toByteArray();
             Assertions.assertNotNull(avroData);

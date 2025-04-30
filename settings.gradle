@@ -11,7 +11,7 @@ plugins {
 
 rootProject.name = 'project-template-parent'
 
-include 'avro-schema-generator'
+include 'avro-schema-processor'
 include 'avro-serde'
 include 'avro-annotations'
 include 'avro-schema-common'
