@@ -3,7 +3,6 @@ package io.micronaut.avro.visitor;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.annotation.processing.test.AbstractTypeElementSpec
 import io.micronaut.avro.model.AvroSchema
-import io.micronaut.avro.serialization.AvroSchemaMapperFactory;
 import io.micronaut.avro.visitor.context.AvroSchemaContext;
 import org.intellij.lang.annotations.Language;
 import org.slf4j.Logger;
@@ -28,7 +27,7 @@ abstract class AbstractAvroSchemaSpec extends AbstractTypeElementSpec {
         String avro = readResource(classLoader, "META-INF/avro-schemas/" + schemaName + "-schema.avsc")
         LOGGER.info("Read AVRO schema: ")
         LOGGER.info(avro)
-        ObjectMapper objectMapper = AvroSchemaMapperFactory.createMapper()
+        ObjectMapper objectMapper = ObjectMapper.getDefault();
         AvroSchema avroSchema = objectMapper.readValue(avro, AvroSchema.class)
         return avroSchema
     }

@@ -20,7 +20,6 @@ import io.micronaut.avro.Avro;
 import io.micronaut.avro.model.AvroSchema;
 import io.micronaut.avro.model.AvroSchema.LogicalType;
 import io.micronaut.avro.model.AvroSchema.Type;
-import io.micronaut.avro.serialization.AvroSchemaMapperFactory;
 import io.micronaut.avro.visitor.context.AvroSchemaContext;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.Internal;
@@ -340,7 +339,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
         } else {
             visitorContext.info("Generating Avro schema file: " + specFile.getName());
             try (Writer writer = specFile.openWriter()) {
-                ObjectMapper mapper = AvroSchemaMapperFactory.createMapper();
+                ObjectMapper mapper = ObjectMapper.getDefault();;
                 List<AvroSchema.Field> sortedFields = avroSchema.getFields().stream()
                     .sorted(Comparator.comparing(AvroSchema.Field::getName))
                     .collect(Collectors.toList());

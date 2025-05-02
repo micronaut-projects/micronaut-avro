@@ -20,7 +20,6 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.avro.AvroSchemaSource;
 import io.micronaut.avro.model.AvroSchema;
-import io.micronaut.avro.serialization.AvroSchemaMapperFactory;
 import io.micronaut.serde.Encoder;
 
 import java.io.BufferedReader;
@@ -105,7 +104,7 @@ public final class AvroSerdeEncoder implements Encoder {
         if (targetClass.isAnnotationPresent(AvroSchemaSource.class)) {
             String schemaName = targetClass.getAnnotation(AvroSchemaSource.class).value();
             String schema = readResource(targetClass.getClassLoader(), schemaName);
-            ObjectMapper objectMapper = AvroSchemaMapperFactory.createMapper();
+            ObjectMapper objectMapper = ObjectMapper.getDefault();
             AvroSchema avroSchema = objectMapper.readValue(schema, AvroSchema.class);
             return new AvroSerdeEncoder(delegate, isArray, avroSchema, this);
         }
