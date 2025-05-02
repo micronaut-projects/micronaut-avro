@@ -78,28 +78,22 @@ public final class AvroSerdeEncoder implements Encoder {
 
         EncodingRunnable arrayWriter = () -> {
             delegate.writeArrayStart();
-            if (!child.arrayBuffer.isEmpty()) {
-                delegate.setItemCount(child.arrayBuffer.size());
-                for (EncodingRunnable r : child.arrayBuffer) {
-                    delegate.startItem();
-                    r.run();
-                }
-                delegate.writeArrayEnd();
+            delegate.setItemCount(child.arrayBuffer.size());
+            for (EncodingRunnable r : child.arrayBuffer) {
+                delegate.startItem();
+                r.run();
             }
+            delegate.writeArrayEnd();
         };
 
         if (isArray) {
-            // If we're inside an array, buffer the nested array as an item
-            arrayBuffer.add(() -> {
-                delegate.startItem();
-                arrayWriter.run();
-            });
+            // Add the child array as an item
+            arrayBuffer.add(arrayWriter);
         } else if (currentKey != null) {
             objectBuffer.put(currentKey, arrayWriter);
             currentKey = null;
         } else {
-            // This is probably a top-level call
-            arrayWriter.run();
+            objectBuffer.put("__TOP_LEVEL_ARRAY__", arrayWriter);
         }
 
         return child;
@@ -122,52 +116,35 @@ public final class AvroSerdeEncoder implements Encoder {
     @Override
     public void finishStructure() throws IOException {
         if (isArray) {
-            delegate.setItemCount(arrayBuffer.size());
-            for (EncodingRunnable r : arrayBuffer) {
-                delegate.startItem();
-                r.run();
+            if (objectBuffer.containsKey("__TOP_LEVEL_ARRAY__")){
+                EncodingRunnable fieldEncoder = objectBuffer.get("__TOP_LEVEL_ARRAY__");
+                fieldEncoder.run();
             }
-            delegate.writeArrayEnd();
-            arrayBuffer.clear();
-        } else {
-            if (schema != null) {
-                for (AvroSchema.Field field : schema.getFields()) {
-                    EncodingRunnable fieldEncoder = objectBuffer.get(field.getName());
-                    if (fieldEncoder == null) {
-                        throw new IOException("Missing field: " + field.getName());
-                    }
-                    // Check field type
-                    if (field.getType() instanceof AvroSchema fieldSchema) {
-                        if (fieldSchema.getType().equals("array")) {
-                            // Handle nested array
-                            AvroSerdeEncoder nestedArrayEncoder = new AvroSerdeEncoder(delegate, true, fieldSchema, this);
-                            nestedArrayEncoder.finishStructure();
-                        } else {
-                            // Handle nested object
-                            AvroSerdeEncoder nestedObjectEncoder = new AvroSerdeEncoder(delegate, false, fieldSchema, this);
-                            nestedObjectEncoder.finishStructure();
-                        }
-                    } else {
-                        // Primitive type
-                        fieldEncoder.run();
-                    }
-                }
-            } else {
-                // If there's no schema, just finish encoding the object buffer.
-                for (Map.Entry<String, EncodingRunnable> entry : objectBuffer.entrySet()) {
-                    entry.getValue().run();
-                }
-            }
-            objectBuffer.clear();
+            return;
         }
 
+        if (schema != null) {
+            for (AvroSchema.Field field : schema.getFields()) {
+                EncodingRunnable fieldEncoder = objectBuffer.get(field.getName());
+                if (fieldEncoder == null) {
+                    throw new IOException("Missing field: " + field.getName());
+                }
+                fieldEncoder.run();
+            }
+        } else {
+            for (Map.Entry<String, EncodingRunnable> entry : objectBuffer.entrySet()) {
+                entry.getValue().run();
+            }
+        }
+        objectBuffer.clear();
+
         if (parent != null && parent.currentKey != null) {
-            parent.objectBuffer.put(parent.currentKey, () -> {
-                // no-op because this child has already written to the delegate
-            });
+            parent.objectBuffer.put(parent.currentKey, () -> {});
             parent.currentKey = null;
         }
+        delegate.flush();
     }
+
 
     @Override
     public void encodeKey(@NonNull String key) throws IOException {
@@ -253,12 +230,8 @@ public final class AvroSerdeEncoder implements Encoder {
     private void buffer(EncodingRunnable valueWriter) throws IOException {
         if (isArray) {
             arrayBuffer.add(() -> {
-                try {
-                    delegate.startItem();
-                    valueWriter.run();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                delegate.startItem();
+                valueWriter.run();
             });
         } else if (currentKey != null) {
             objectBuffer.put(currentKey, valueWriter);
@@ -304,6 +277,7 @@ public final class AvroSerdeEncoder implements Encoder {
     }
 
     private boolean isValidType(Object value, AvroSchema.Type expectedType) throws IOException {
+        // todo to be updated and remove instance of
         return switch (expectedType) {
             case STRING -> value instanceof String;
             case BOOLEAN -> value instanceof Boolean;
