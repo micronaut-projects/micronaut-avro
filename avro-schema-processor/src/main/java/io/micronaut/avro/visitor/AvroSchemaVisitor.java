@@ -157,29 +157,39 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
 
     private static void setSchemaType(TypedElement element, VisitorContext visitorContext, AvroSchemaContext context, AvroSchema avroSchema) {
         ClassElement type = element.getGenericType();
-
-        if (type.getName().equals("java.math.BigDecimal")) {
-            if (context.useDecimalLogicalType()) {
-                avroSchema.setType(Type.STRING);
-                avroSchema.setJavaClass(type.getCanonicalName());
-                avroSchema.setLogicalType(LogicalType.DECIMAL);
-
-            } else {
-                avroSchema.setType(Type.STRING);
-            }
-        } else if (type.getName().equals("char") || type.getName().equals("java.lang.Character")) {
-            avroSchema.setUnsupported(true);
-            avroSchema.setType(Type.INT);
-            avroSchema.setJavaClass("java.lang.Character");
-        } else if (type.getName().equals("byte") || type.getName().equals("java.lang.Byte")) {
-            avroSchema.setUnsupported(true);
-            avroSchema.setType(Type.INT);
-            avroSchema.setJavaClass("java.lang.Byte");
-        } else if (type.getName().equals("short") || type.getName().equals("java.lang.Short")) {
-            avroSchema.setUnsupported(true);
-            avroSchema.setType(Type.INT);
-            avroSchema.setJavaClass("java.lang.Short");
-        } else if (type.isAssignable(Map.class)) {
+        String typeName = type.getName();
+        switch (typeName) {
+            case "java.math.BigDecimal":
+                if (context.useDecimalLogicalType()) {
+                    avroSchema.setType(Type.STRING);
+                    avroSchema.setJavaClass(type.getCanonicalName());
+                    avroSchema.setLogicalType(LogicalType.DECIMAL);
+                } else {
+                    avroSchema.setType(Type.STRING);
+                }
+                break;
+            case "char":
+            case "java.lang.Character":
+                avroSchema.setUnsupported(true);
+                avroSchema.setType(Type.INT);
+                avroSchema.setJavaClass("java.lang.Character");
+                break;
+            case "byte":
+            case "java.lang.Byte":
+                avroSchema.setUnsupported(true);
+                avroSchema.setType(Type.INT);
+                avroSchema.setJavaClass("java.lang.Byte");
+                break;
+            case "short":
+            case "java.lang.Short":
+                avroSchema.setUnsupported(true);
+                avroSchema.setType(Type.INT);
+                avroSchema.setJavaClass("java.lang.Short");
+                break;
+            default:
+                break;
+        }
+        if (type.isAssignable(Map.class)) {
             avroSchema.setType(Type.MAP);
             ClassElement valueType = type.getTypeArguments().get("V");
             AvroSchema valueSchema = createSchema(valueType, visitorContext, context);
@@ -340,7 +350,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
         } else {
             visitorContext.info("Generating Avro schema file: " + specFile.getName());
             try (Writer writer = specFile.openWriter()) {
-                ObjectMapper mapper = ObjectMapper.getDefault();;
+                ObjectMapper mapper = ObjectMapper.getDefault();
                 List<AvroSchema.Field> sortedFields = avroSchema.getFields().stream()
                     .sorted(Comparator.comparing(AvroSchema.Field::getName))
                     .collect(Collectors.toList());
