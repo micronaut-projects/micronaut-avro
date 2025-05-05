@@ -34,6 +34,7 @@ import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.inject.writer.GeneratedFile;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Writer;
 import java.time.temporal.Temporal;
 import java.time.temporal.TemporalAmount;
@@ -350,14 +351,14 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
             visitorContext.warn("Unable to get [\" " + path + "\"] file to write Avro schema", originatingElement);
         } else {
             visitorContext.info("Generating Avro schema file for type [" + originatingElement.getSimpleName() + "]: " + specFile.getName());
-            try (Writer writer = specFile.openWriter()) {
+            try (OutputStream outputStream = specFile.openOutputStream()) {
                 ObjectMapper mapper = ObjectMapper.getDefault();
                 List<AvroSchema.Field> sortedFields = avroSchema.getFields().stream()
                     .sorted(Comparator.comparing(AvroSchema.Field::getName))
                     .collect(Collectors.toList());
                 avroSchema.setFields(sortedFields);
                 String schema = mapper.writeValueAsString(avroSchema);
-                writer.write(schema);
+                outputStream.write(schema.getBytes());
             } catch (IOException e) {
                 throw new RuntimeException("Failed writing Avro schema " + specFile.getName() + " file: " + e, e);
             }
