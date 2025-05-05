@@ -35,7 +35,6 @@ import io.micronaut.inject.writer.GeneratedFile;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Writer;
 import java.time.temporal.Temporal;
 import java.time.temporal.TemporalAmount;
 import java.util.Arrays;
@@ -314,7 +313,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
         avroSchema.setNamespace(element.getPackageName());
         context.currentOriginatingElements().add(element);
         if (avroSchema.getName() == null) {
-            avroSchema.setName(element.getSimpleName().replace('$', '.'));
+            avroSchema.setName(element.getCanonicalName());
         }
         context.createdSchemasByType().put(element.getName(), avroSchema);
 
