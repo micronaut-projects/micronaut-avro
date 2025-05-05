@@ -15,6 +15,7 @@
  */
 package io.micronaut.avro.visitor;
 
+import io.micronaut.inject.processing.ProcessingException;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.avro.Avro;
 import io.micronaut.avro.model.AvroSchema;
@@ -220,7 +221,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
             }
             context.currentOriginatingElements().add(enumElement);
         } else if (isPrimitiveType(type)) {
-            avroSchema.setType(getPrimitiveAvroType(type.getName()));
+            avroSchema.setType(getPrimitiveAvroType(type));
 
         } else if (type.isAssignable(Number.class)) {
             setNumericType(type, avroSchema, context);
@@ -380,8 +381,8 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
             type == LogicalType.TIMESTAMP_MILLIS || type == LogicalType.TIMESTAMP_MICROS);
     }
 
-    private static Type getPrimitiveAvroType(String typeName) {
-        return switch (typeName) {
+    private static Type getPrimitiveAvroType(ClassElement type) {
+        return switch (type.getName()) {
             case "int" -> Type.INT;
             case "float" -> Type.FLOAT;
             case "long" -> Type.LONG;
@@ -389,7 +390,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
             case "boolean" -> Type.BOOLEAN;
             case "void" -> Type.NULL;
             default ->
-                throw new IllegalArgumentException("Unsupported primitive type: " + typeName);
+                throw new ProcessingException(type, "Unsupported primitive type: " + type.getName());
         };
     }
 
