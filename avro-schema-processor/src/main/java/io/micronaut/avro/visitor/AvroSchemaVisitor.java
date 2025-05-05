@@ -357,8 +357,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
                     .sorted(Comparator.comparing(AvroSchema.Field::getName))
                     .collect(Collectors.toList());
                 avroSchema.setFields(sortedFields);
-                String schema = mapper.writeValueAsString(avroSchema);
-                outputStream.write(schema.getBytes());
+                mapper.writeValue(outputStream ,avroSchema);
             } catch (IOException e) {
                 throw new RuntimeException("Failed writing Avro schema " + specFile.getName() + " file: " + e, e);
             }
