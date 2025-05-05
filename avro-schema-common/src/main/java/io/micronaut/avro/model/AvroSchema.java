@@ -36,7 +36,6 @@ import java.util.Locale;
 @Internal
 @Serdeable
 @Builder
-@Wither
 public final class AvroSchema {
 
     private Object type;
