@@ -192,14 +192,15 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
         } else if (type.isAssignable(Collection.class)) {
             avroSchema.setType(Type.ARRAY);
             avroSchema.setJavaClass(type.getCanonicalName());
-            ClassElement componentType = type.getTypeArguments().get("E");
-            AvroSchema itemSchema = createSchema(componentType, visitorContext, context);
-
-            // If the component type is primitive, use the simple type string
-            if (isPrimitiveType(componentType) || isPrimitiveAvroType(itemSchema.getType())) {
-                avroSchema.setItems(itemSchema.getType());
-            } else {
-                avroSchema.setItems(itemSchema);
+            ClassElement componentType = type.getFirstTypeArgument().orElse(null);
+            if (componentType != null) {
+                AvroSchema itemSchema = createSchema(componentType, visitorContext, context);
+                // If the component type is primitive, use the simple type string
+                if (isPrimitiveType(componentType) || isPrimitiveAvroType(itemSchema.getType())) {
+                    avroSchema.setItems(itemSchema.getType());
+                } else {
+                    avroSchema.setItems(itemSchema);
+                }
             }
         } else if (!type.isPrimitive() && type.getRawClassElement() instanceof EnumElement enumElement) {
             avroSchema.setType(Type.ENUM);
