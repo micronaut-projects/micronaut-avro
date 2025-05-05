@@ -115,7 +115,7 @@ public final class AvroSerdeEncoder implements Encoder {
     @Override
     public void finishStructure() throws IOException {
         if (isArray) {
-            if (objectBuffer.containsKey("__TOP_LEVEL_ARRAY__")){
+            if (objectBuffer.containsKey("__TOP_LEVEL_ARRAY__")) {
                 EncodingRunnable fieldEncoder = objectBuffer.get("__TOP_LEVEL_ARRAY__");
                 fieldEncoder.run();
             }
@@ -138,12 +138,11 @@ public final class AvroSerdeEncoder implements Encoder {
         objectBuffer.clear();
 
         if (parent != null && parent.currentKey != null) {
-            parent.objectBuffer.put(parent.currentKey, () -> {});
+            parent.objectBuffer.put(parent.currentKey, () -> { });
             parent.currentKey = null;
         }
         delegate.flush();
     }
-
 
     @Override
     public void encodeKey(@NonNull String key) throws IOException {
