@@ -335,7 +335,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
         String path = context.outputLocation() + SLASH + fileName;
         GeneratedFile specFile = visitorContext.visitMetaInfFile(path, originatingElement).orElse(null);
         if (specFile == null) {
-            visitorContext.warn("Unable to get [\" " + path + "\"] file to write Avro schema", null);
+            visitorContext.warn("Unable to get [\" " + path + "\"] file to write Avro schema", originatingElement);
         } else {
             visitorContext.info("Generating Avro schema file: " + specFile.getName());
             try (Writer writer = specFile.openWriter()) {
