@@ -348,7 +348,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
         if (specFile == null) {
             visitorContext.warn("Unable to get [\" " + path + "\"] file to write Avro schema", originatingElement);
         } else {
-            visitorContext.info("Generating Avro schema file: " + specFile.getName());
+            visitorContext.info("Generating Avro schema file for type [" + originatingElement.getSimpleName() + "]: " + specFile.getName());
             try (Writer writer = specFile.openWriter()) {
                 ObjectMapper mapper = ObjectMapper.getDefault();
                 List<AvroSchema.Field> sortedFields = avroSchema.getFields().stream()
