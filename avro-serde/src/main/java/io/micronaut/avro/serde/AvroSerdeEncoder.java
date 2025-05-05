@@ -24,11 +24,13 @@ import io.micronaut.serde.Encoder;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -244,15 +246,11 @@ public final class AvroSerdeEncoder implements Encoder {
         if (!specs.hasNext()) {
             throw new IllegalArgumentException("Could not find resource " + resourcePath);
         }
+
         URL spec = specs.next();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(spec.openStream()));
-        StringBuilder result = new StringBuilder();
-        String inputLine;
-        while ((inputLine = reader.readLine()) != null) {
-            result.append(inputLine).append("\n");
+        try (InputStream inputStream = spec.openStream()) {
+            return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
         }
-        reader.close();
-        return result.toString();
     }
 
     /**

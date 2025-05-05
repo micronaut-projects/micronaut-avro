@@ -6,7 +6,9 @@ import io.micronaut.avro.model.AvroSchema
 import io.micronaut.avro.visitor.context.AvroSchemaContext;
 import org.intellij.lang.annotations.Language;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.slf4j.LoggerFactory
+
+import java.nio.charset.StandardCharsets;
 
 abstract class AbstractAvroSchemaSpec extends AbstractTypeElementSpec {
 
@@ -32,19 +34,15 @@ abstract class AbstractAvroSchemaSpec extends AbstractTypeElementSpec {
         return avroSchema
     }
 
-    protected String readResource(ClassLoader classLoader, String resourcePath) {
-        Iterator<URL> specs = classLoader.getResources(resourcePath).asIterator()
+    private static String readResource(ClassLoader classLoader, String resourcePath) throws IOException {
+        Iterator<URL> specs = classLoader.getResources(resourcePath).asIterator();
         if (!specs.hasNext()) {
-            throw new IllegalArgumentException("Could not find resource " + resourcePath)
+            throw new IllegalArgumentException("Could not find resource " + resourcePath);
         }
-        URL spec = specs.next()
-        BufferedReader reader = new BufferedReader(new InputStreamReader(spec.openStream()))
-        StringBuilder result = new StringBuilder()
-        String inputLine
-        while ((inputLine = reader.readLine()) != null) {
-            result.append(inputLine).append("\n")
+
+        URL spec = specs.next();
+        try (InputStream inputStream = spec.openStream()) {
+            return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
         }
-        reader.close()
-        return result.toString()
     }
 }
