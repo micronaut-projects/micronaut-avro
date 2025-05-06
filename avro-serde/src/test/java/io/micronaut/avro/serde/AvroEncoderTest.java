@@ -173,7 +173,7 @@ public class AvroEncoderTest {
     public void serializeSalamanderClass() throws IOException {
 
         // Define the Salamander class with Avro schema annotation
-        @AvroSchemaSource("Salamander-schema.avsc")
+        @AvroSchemaSource("classpath:Salamander-schema.avsc")
         class Salamander {
             private String name;
             private List<List<String>> words;
@@ -276,7 +276,7 @@ public class AvroEncoderTest {
     @Test
     public void serializeNestedStructure() throws IOException {
         // Define the Salamander class with Avro schema annotation
-        @AvroSchemaSource("Salamander-schema.avsc")
+        @AvroSchemaSource("classpath:Salamander-schema.avsc")
         class Salamander {
             private String name;
             private List<List<String>> words;

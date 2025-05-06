@@ -15,6 +15,7 @@
  */
 package io.micronaut.avro.serde;
 
+import io.micronaut.avro.serde.loader.AvroSchemaLoader;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
@@ -22,21 +23,15 @@ import io.micronaut.avro.AvroSchemaSource;
 import io.micronaut.avro.model.AvroSchema;
 import io.micronaut.serde.Encoder;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.net.URL;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Collection;
 import java.util.TreeMap;
-import java.util.Iterator;
 
 /***
  * Avro Implementation of {@link Encoder}
@@ -104,10 +99,9 @@ public final class AvroSerdeEncoder implements Encoder {
     public @NonNull Encoder encodeObject(@NonNull Argument<?> type) throws IOException {
         Class<?> targetClass = type.getType();
         if (targetClass.isAnnotationPresent(AvroSchemaSource.class)) {
-            String schemaName = targetClass.getAnnotation(AvroSchemaSource.class).value();
-            String schema = readResource(targetClass.getClassLoader(), schemaName);
+            String schemaLocation = targetClass.getAnnotation(AvroSchemaSource.class).value();
             ObjectMapper objectMapper = ObjectMapper.getDefault();
-            AvroSchema avroSchema = objectMapper.readValue(schema, AvroSchema.class);
+            AvroSchema avroSchema = AvroSchemaLoader.load(schemaLocation, objectMapper, targetClass.getClassLoader());
             return new AvroSerdeEncoder(delegate, isArray, avroSchema, this);
         }
 
@@ -238,18 +232,6 @@ public final class AvroSerdeEncoder implements Encoder {
             currentKey = null;
         } else {
             valueWriter.run();
-        }
-    }
-
-    private String readResource(ClassLoader classLoader, String resourcePath) throws IOException {
-        Iterator<URL> specs = classLoader.getResources(resourcePath).asIterator();
-        if (!specs.hasNext()) {
-            throw new IllegalArgumentException("Could not find resource " + resourcePath);
-        }
-
-        URL spec = specs.next();
-        try (InputStream inputStream = spec.openStream()) {
-            return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
         }
     }
 
