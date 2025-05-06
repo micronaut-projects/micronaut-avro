@@ -1,6 +1,5 @@
-package io.micronaut.avro.visitor
+package io.micronaut.avro.visitor;
 
-import io.micronaut.core.io.ResourceLoader;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.annotation.processing.test.AbstractTypeElementSpec
 import io.micronaut.avro.model.AvroSchema
@@ -14,7 +13,6 @@ import java.nio.charset.StandardCharsets;
 abstract class AbstractAvroSchemaSpec extends AbstractTypeElementSpec {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractAvroSchemaSpec.class);
-    private final ResourceLoader resourceLoader;
 
     protected AvroSchema buildAvroSchema(String className, String schemaName, @Language("java") String cls, String... parameters) {
         return buildAvroSchema(className, schemaName, cls.formatted(parameters), null)
@@ -36,14 +34,15 @@ abstract class AbstractAvroSchemaSpec extends AbstractTypeElementSpec {
         return avroSchema
     }
 
-    private String readResource(ClassLoader classLoader, String resourcePath) throws IOException {
-        Optional<URL> url = resourceLoader.getResource(resourcePath);
-        if (url.isPresent()) {
-            try (InputStream inputStream = url.get().openStream()) {
-                return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8)
-            }
-        } else {
-            throw new IOException("Resource not found: " + resourcePath);
+    private static String readResource(ClassLoader classLoader, String resourcePath) throws IOException {
+        Iterator<URL> specs = classLoader.getResources(resourcePath).asIterator();
+        if (!specs.hasNext()) {
+            throw new IllegalArgumentException("Could not find resource " + resourcePath);
+        }
+
+        URL spec = specs.next();
+        try (InputStream inputStream = spec.openStream()) {
+            return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
         }
     }
 }
