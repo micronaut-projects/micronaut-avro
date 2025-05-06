@@ -257,7 +257,7 @@ public final class AvroSerdeEncoder implements Encoder {
     private boolean isValidType(Object value, AvroSchema.Type expectedType) throws IOException {
         // todo to be updated and remove instance of
         return switch (expectedType) {
-            case STRING -> value instanceof String;
+            case STRING -> value instanceof String || value instanceof BigDecimal;
             case BOOLEAN -> value instanceof Boolean;
             case INT -> value instanceof Integer || value instanceof Short || value instanceof Byte || value instanceof Character;
             case LONG -> value instanceof Long;

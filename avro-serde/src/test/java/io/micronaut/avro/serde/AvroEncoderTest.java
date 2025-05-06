@@ -1,4 +1,5 @@
 package io.micronaut.avro.serde;
+
 import io.micronaut.core.type.Argument;
 import io.micronaut.avro.AvroSchemaSource;
 import io.micronaut.serde.Encoder;
@@ -279,10 +280,10 @@ public class AvroEncoderTest {
         @AvroSchemaSource("classpath:Salamander-schema.avsc")
         class Salamander {
             private String name;
-            private List<List<String>> words;
+            private List<List<List<String>>> words;
 
 
-            public Salamander(String name, List<List<String>> words) {
+            public Salamander(String name, List<List<List<String>>> words) {
                 this.name = name;
                 this.words = words;
 
@@ -290,7 +291,7 @@ public class AvroEncoderTest {
         }
 
         // Initialize an instance of Salamander
-        Salamander salamanderInstance = new Salamander("ali", List.of(List.of("now", "how", "law"), List.of("a", "b", "c")));
+        Salamander salamanderInstance = new Salamander("ali", List.of(List.of(List.of("now", "how", "law"), List.of("a", "b", "c"))));
 
         // Output stream for the serialized data
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -305,11 +306,15 @@ public class AvroEncoderTest {
 
             objectEncoder.encodeKey("words");
             Encoder outerArrayEncoder = objectEncoder.encodeArray(Argument.of(String.class));
-            for (List<String> innerList : salamanderInstance.words) {
+            for (List<List<String>> innerList : salamanderInstance.words) {
 
                 Encoder innerArrayEncoder = outerArrayEncoder.encodeArray(Argument.of(String.class));
-                for (String word : innerList) {
-                    innerArrayEncoder.encodeString(word);
+                for (List<String> words : innerList) {
+                    Encoder innerEncoder = innerArrayEncoder.encodeArray(Argument.of(String.class));
+                    for (String s : words) {
+                        innerEncoder.encodeString(s);
+                    }
+                    innerEncoder.finishStructure();
                 }
                 innerArrayEncoder.finishStructure();
             }
@@ -320,7 +325,7 @@ public class AvroEncoderTest {
         // Validate the result
         byte[] encodedBytes = out.toByteArray();
         String actualResult = Arrays.toString(encodedBytes);
-        assertEquals("[6, 97, 108, 105, 4, 6, 6, 110, 111, 119, 6, 104, 111, 119, 6, 108, 97, 119, 0, 6, 2, 97, 2, 98, 2, 99, 0, 0]", actualResult);
+        assertEquals("[6, 97, 108, 105, 2, 4, 6, 6, 110, 111, 119, 6, 104, 111, 119, 6, 108, 97, 119, 0, 6, 2, 97, 2, 98, 2, 99, 0, 0, 0]", actualResult);
     }
 
 }
