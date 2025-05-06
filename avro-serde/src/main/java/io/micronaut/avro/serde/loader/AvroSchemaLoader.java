@@ -15,11 +15,9 @@
  */
 package io.micronaut.avro.serde.loader;
 
-import io.micronaut.core.io.ResourceLoader;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.avro.model.AvroSchema;
 import io.micronaut.core.annotation.Internal;
-import jakarta.inject.Inject;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,8 +25,6 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Optional;
-
 /**
  *  Helper class used to load Avro schemas from various locations.
  *
