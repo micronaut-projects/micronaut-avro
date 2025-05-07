@@ -4,7 +4,6 @@ plugins {
 dependencies {
     annotationProcessor(mnSerde.micronaut.serde.processor)
     annotationProcessor("io.micronaut.sourcegen:micronaut-sourcegen-generator-java")
-    implementation("io.micronaut.sourcegen:micronaut-sourcegen-model")
-    implementation("io.micronaut.sourcegen:micronaut-sourcegen-annotations")
+    compileOnly("io.micronaut.sourcegen:micronaut-sourcegen-annotations")
     implementation(mnSerde.micronaut.serde.jackson)
 }
