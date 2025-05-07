@@ -291,13 +291,11 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
                 avroSchema.setJavaClass(type.getCanonicalName());
             }
             case "java.lang.Short" -> {
-                System.out.println("yes short");
                 avroSchema.setUnsupported(true);
                 avroSchema.setType(Type.INT);
                 avroSchema.setJavaClass("java.lang.Short");
             }
             case "java.lang.Byte" -> {
-                System.out.println("yes byte");
                 avroSchema.setUnsupported(true);
                 avroSchema.setType(Type.INT);
                 avroSchema.setJavaClass("java.lang.Byte");
