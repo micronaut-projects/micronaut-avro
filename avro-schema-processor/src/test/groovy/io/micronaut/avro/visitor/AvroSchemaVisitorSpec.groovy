@@ -39,10 +39,10 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
         avroSchema.name == "Salamander"
         avroSchema.namespace == "test.me.models"
         avroSchema.fields.get(0).name == "age"
-        avroSchema.fields.get(0).type == AvroSchema.Type.INT.value()
+        avroSchema.fields.get(0).type == AvroSchema.Type.INT.name()
         avroSchema.fields.get(1).name == "bd"
-        avroSchema.fields.get(1).type.type == "string"
-        avroSchema.fields.get(2).type.type == AvroSchema.Type.ENUM.value()
+        avroSchema.fields.get(1).type.type == AvroSchema.Type.BYTES.name()
+        avroSchema.fields.get(2).type.type == AvroSchema.Type.ENUM.name()
         avroSchema.fields.get(2).type.symbols == ["RED", "GREEN", "BLUE"]
         avroSchema.fields.get(2).name == "color"
     }
@@ -66,7 +66,7 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
                 int age,
                 LocalDate date,
                 LocalTime time,
-                Character character
+                char character
         ) {
 }
 """)
@@ -75,18 +75,18 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
         avroSchema.doc == "this a salamander record"
         avroSchema.namespace == "test"
         avroSchema.fields.get(0).name == "age"
-        avroSchema.fields.get(0).type == AvroSchema.Type.INT.value()
+        avroSchema.fields.get(0).type == AvroSchema.Type.INT.name()
         avroSchema.fields.get(1).name == "character"
-        avroSchema.fields.get(1).type.type == AvroSchema.Type.INT.value()
-        avroSchema.fields.get(2).type.logicalType == AvroSchema.LogicalType.DATE.name().toLowerCase()
+        avroSchema.fields.get(1).type.type == AvroSchema.Type.INT.name()
+        avroSchema.fields.get(2).type.logicalType == AvroSchema.LogicalType.DATE.name()
         avroSchema.fields.get(2).name == "date"
-        avroSchema.fields.get(2).type.type == AvroSchema.Type.INT.value()
-        avroSchema.fields.get(2).type.logicalType == AvroSchema.LogicalType.DATE.name().toLowerCase()
+        avroSchema.fields.get(2).type.type == AvroSchema.Type.INT.name()
+        avroSchema.fields.get(2).type.logicalType == AvroSchema.LogicalType.DATE.name()
         avroSchema.fields.get(3).name == "name"
-        avroSchema.fields.get(3).type == AvroSchema.Type.STRING.value()
+        avroSchema.fields.get(3).type == AvroSchema.Type.STRING.name()
         avroSchema.fields.get(4).name == "time"
-        avroSchema.fields.get(4).type.type == AvroSchema.Type.INT.value().toLowerCase()
-        avroSchema.fields.get(4).type.logicalType == AvroSchema.LogicalType.TIME_MILLIS.name().toLowerCase()
+        avroSchema.fields.get(4).type.type == AvroSchema.Type.INT.name()
+        avroSchema.fields.get(4).type.logicalType == AvroSchema.LogicalType.TIME_MILLIS.name()
     }
 
     void "test record schema with nested lists"() {
@@ -121,12 +121,12 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
         avroSchema.fields.get(0).name == "color"
         avroSchema.fields.get(0).type.symbols == ["RED", "GREEN", "BLUE"]
         avroSchema.fields.get(1).name == "isTrue"
-        avroSchema.fields.get(1).type == AvroSchema.Type.BOOLEAN.value()
+        avroSchema.fields.get(1).type == AvroSchema.Type.BOOLEAN.name()
         avroSchema.fields.get(2).name == "name"
         avroSchema.fields.get(3).name == "nestedList"
-        avroSchema.fields.get(3).type.type == AvroSchema.Type.ARRAY.value()
-        avroSchema.fields.get(3).type.items.type == AvroSchema.Type.ARRAY.value()
-        avroSchema.fields.get(3).type.items.items == AvroSchema.Type.STRING.value()
+        avroSchema.fields.get(3).type.type == AvroSchema.Type.ARRAY.name()
+        avroSchema.fields.get(3).type.items.type == AvroSchema.Type.ARRAY.name()
+        avroSchema.fields.get(3).type.items.items == AvroSchema.Type.STRING.name()
     }
 
     void "test simple class schema generation"() {
@@ -257,4 +257,25 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
         }
 """)
     }
+    void "schema with primitive types" () {
+        given:
+        def  avroSchema = buildAvroSchema("test.Person", "Person", """
+
+        package dev.test.avro;
+
+        import io.micronaut.avro.Avro;
+
+        @Avro
+        public record Person (
+                int testInt,
+                float testFloat,
+                double testDouble,
+                long testLong,
+                byte testByte,
+                short testShort,
+                char testChar
+        ){}
+""")
+    }
+
 }

@@ -15,6 +15,7 @@
  */
 package io.micronaut.avro.visitor;
 
+import io.micronaut.avro.model.AvroSchemaBuilder;
 import io.micronaut.inject.processing.ProcessingException;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.avro.Avro;
@@ -141,10 +142,10 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
 
         if (context.createdSchemasByType().containsKey(ref)) {
             context.currentOriginatingElements().add(classElement);
-            AvroSchema avroSchema = new AvroSchema();
-            avroSchema.setType(context.createdSchemasByType().get(ref).getName());
-            avroSchema.setRefType(true);
-            return avroSchema;
+            return AvroSchemaBuilder.builder()
+                .type(context.createdSchemasByType().get(ref).getName())
+                .refType(true)
+                .build();
         }
         // Handle simple types directly
         if (classElement.isAssignable(Number.class) || classElement.isPrimitive()) {
@@ -158,38 +159,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
 
     private static void setSchemaType(TypedElement element, VisitorContext visitorContext, AvroSchemaContext context, AvroSchema avroSchema) {
         ClassElement type = element.getGenericType();
-        String typeName = type.getName();
-        switch (typeName) {
-            case "java.math.BigDecimal":
-                if (context.useDecimalLogicalType()) {
-                    avroSchema.setType(Type.STRING);
-                    avroSchema.setJavaClass(type.getCanonicalName());
-                    avroSchema.setLogicalType(LogicalType.DECIMAL);
-                } else {
-                    avroSchema.setType(Type.STRING);
-                }
-                break;
-            case "char":
-            case "java.lang.Character":
-                avroSchema.setUnsupported(true);
-                avroSchema.setType(Type.INT);
-                avroSchema.setJavaClass("java.lang.Character");
-                break;
-            case "byte":
-            case "java.lang.Byte":
-                avroSchema.setUnsupported(true);
-                avroSchema.setType(Type.INT);
-                avroSchema.setJavaClass("java.lang.Byte");
-                break;
-            case "short":
-            case "java.lang.Short":
-                avroSchema.setUnsupported(true);
-                avroSchema.setType(Type.INT);
-                avroSchema.setJavaClass("java.lang.Short");
-                break;
-            default:
-                break;
-        }
+
         if (type.isAssignable(Map.class)) {
             avroSchema.setType(Type.MAP);
             ClassElement valueType = type.getTypeArguments().get("V");
@@ -221,12 +191,21 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
             }
             context.currentOriginatingElements().add(enumElement);
         } else if (isPrimitiveType(type)) {
-            avroSchema.setType(getPrimitiveAvroType(type));
+            // todo
+            avroSchema.setType(getPrimitiveType(avroSchema, type));
+
 
         } else if (type.isAssignable(Number.class)) {
             setNumericType(type, avroSchema, context);
         } else if (type.isAssignable(CharSequence.class)) {
-            avroSchema.setType(Type.STRING);
+            if (type.getName().equals("java.lang.Character") || type.getName().equals("char")) {
+                avroSchema.setUnsupported(true);
+                avroSchema.setType(Type.INT);
+                avroSchema.setJavaClass("java.lang.Character");
+            } else {
+                avroSchema.setType(Type.STRING);
+            }
+
         } else if (type.getName().equals("boolean") || type.getName().equals("java.lang.Boolean")) {
             avroSchema.setType(Type.BOOLEAN);
         } else if (type.isAssignable(Temporal.class) || type.isAssignable(TemporalAmount.class)) {
@@ -234,11 +213,9 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
         } else if (type.isAssignable(UUID.class)) {
             avroSchema.setType(Type.STRING);
             if (context.useLogicalTypes()) {
-                avroSchema.setLogicalType(AvroSchema.LogicalType.UUID);
+                avroSchema.setLogicalType(LogicalType.UUID);
             }
-        } else if (type.getName().equals("void") || type.getName().equals("java.lang.Void")) {
-            avroSchema.setType(Type.NULL);
-        } else if (!type.isPrimitive()) {
+        } else {
             setBeanSchemaFields(type, visitorContext, context, avroSchema);
         }
     }
@@ -255,7 +232,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
             case "java.time.LocalDate", "java.sql.Date", "java.time.chrono.ChronoLocalDate" -> {
                 avroSchema.setType(Type.INT);
                 if (context.useLogicalTypes()) {
-                    avroSchema.setLogicalType(AvroSchema.LogicalType.DATE);
+                    avroSchema.setLogicalType(LogicalType.DATE);
                 }
             }
             case "java.time.LocalTime", "java.sql.Time" -> {
@@ -297,12 +274,35 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
             case "java.lang.Float" -> avroSchema.setType(Type.FLOAT);
             case "java.lang.Double" -> avroSchema.setType(Type.DOUBLE);
             case "java.lang.Long" -> avroSchema.setType(Type.LONG);
+            case "java.math.BigDecimal" -> {
+                if (context.useDecimalLogicalType()) {
+                    avroSchema.setType(Type.BYTES);
+                    avroSchema.setJavaClass(type.getCanonicalName());
+                    avroSchema.setLogicalType(LogicalType.DECIMAL);
+                } else {
+                    avroSchema.setType(Type.STRING);
+                }
+
+            }
             case "java.math.BigInteger" -> {
                 // BigInteger doesn't have a specific logical type
                 avroSchema.setType(Type.STRING);
                 avroSchema.setUnsupported(true);
                 avroSchema.setJavaClass(type.getCanonicalName());
             }
+            case "java.lang.Short" -> {
+                System.out.println("yes short");
+                avroSchema.setUnsupported(true);
+                avroSchema.setType(Type.INT);
+                avroSchema.setJavaClass("java.lang.Short");
+            }
+            case "java.lang.Byte" -> {
+                System.out.println("yes byte");
+                avroSchema.setUnsupported(true);
+                avroSchema.setType(Type.INT);
+                avroSchema.setJavaClass("java.lang.Byte");
+            }
+
             default -> avroSchema.setType(Type.DOUBLE);
         }
     }
@@ -316,7 +316,6 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
             avroSchema.setName(element.getCanonicalName());
         }
         context.createdSchemasByType().put(element.getName(), avroSchema);
-
         for (PropertyElement property : element.getBeanProperties()) {
             AvroSchema.Field field = new AvroSchema.Field();
             field.setName(property.getName());
@@ -332,7 +331,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
 
             // Create schema for the property
             AvroSchema propertySchema = createSchema(property, visitorContext, context);
-            if (isPrimitiveType(property.getType()) || isPrimitiveAvroType(propertySchema.getType()) && !isLogicalAvroType(propertySchema.getLogicalType()) && !propertySchema.isUnsupported() || propertySchema.isRefType()) {
+            if ((isPrimitiveType(property.getType()) || isPrimitiveAvroType(propertySchema.getType())) && !isLogicalAvroType(propertySchema.getLogicalType()) && !propertySchema.isUnsupported() || propertySchema.isRefType()) {
                 field.setType(propertySchema.getType());
             } else {
                 field.setType(propertySchema);
@@ -356,7 +355,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
                     .sorted(Comparator.comparing(AvroSchema.Field::getName))
                     .collect(Collectors.toList());
                 avroSchema.setFields(sortedFields);
-                mapper.writeValue(outputStream ,avroSchema);
+                mapper.writeValue(outputStream, avroSchema);
             } catch (IOException e) {
                 throw new RuntimeException("Failed writing Avro schema " + specFile.getName() + " file: " + e, e);
             }
@@ -380,23 +379,50 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
             type == LogicalType.TIMESTAMP_MILLIS || type == LogicalType.TIMESTAMP_MICROS);
     }
 
-    private static Type getPrimitiveAvroType(ClassElement type) {
-        return switch (type.getName()) {
-            case "int" -> Type.INT;
-            case "float" -> Type.FLOAT;
-            case "long" -> Type.LONG;
-            case "double" -> Type.DOUBLE;
-            case "boolean" -> Type.BOOLEAN;
-            case "void" -> Type.NULL;
-            default ->
-                throw new ProcessingException(type, "Unsupported primitive type: " + type.getName());
-        };
+    private static boolean isPrimitiveType(ClassElement type) {
+        return type.isPrimitive() || type.isVoid();
     }
 
-    private static boolean isPrimitiveType(ClassElement type) {
-        String typeName = type.getName();
-        return typeName.equals("int") || typeName.equals("float") || typeName.equals("double") ||
-            typeName.equals("long") || typeName.equals("boolean") || typeName.equals("void");
+    private static Type getPrimitiveType(AvroSchema schema, ClassElement classElement) {
+        Type type = null;
+        switch (classElement.getName()) {
+            case "int" -> {
+                type = Type.INT;
+            }
+            case "byte" -> {
+                schema.setUnsupported(true);
+                schema.setJavaClass("java.lang.Byte");
+                type = Type.INT;
+            }
+            case "short" -> {
+                schema.setUnsupported(true);
+                schema.setJavaClass("java.lang.Short");
+                type = Type.INT;
+            }
+            case "char" -> {
+                schema.setUnsupported(true);
+                schema.setJavaClass("java.lang.Character");
+                type = Type.INT;
+            }
+            case "float" -> {
+                type = Type.FLOAT;
+            }
+            case "long" -> {
+                type = Type.LONG;
+            }
+            case "double" -> {
+                type = Type.DOUBLE;
+            }
+            case "boolean" -> {
+                type = Type.BOOLEAN;
+            }
+            case "void" -> {
+                type = Type.NULL;
+            }
+            default ->
+                throw new ProcessingException(classElement, "Unsupported primitive type: " + classElement.getName());
+        }
+        return type;
     }
 
     // Helper method to check if an Avro Type is primitive
