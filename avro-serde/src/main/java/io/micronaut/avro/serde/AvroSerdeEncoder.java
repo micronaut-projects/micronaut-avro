@@ -131,7 +131,6 @@ public final class AvroSerdeEncoder implements Encoder {
                 entry.getValue().run();
             }
         }
-        objectBuffer.clear();
 
         if (parent != null && parent.currentKey != null) {
             parent.objectBuffer.put(parent.currentKey, () -> { });
