@@ -273,9 +273,32 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
                 long testLong,
                 byte testByte,
                 short testShort,
-                char testChar
+                char testChar,
+                Character character
         ){}
 """)
+        expect:
+        avroSchema.name == "Person"
+        avroSchema.fields.get(0).name == "character"
+        avroSchema.fields.get(0).type.type == AvroSchema.Type.INT.name()
+        avroSchema.fields.get(0).type.javaClass == "java.lang.Character"
+        avroSchema.fields.get(1).name == "testByte"
+        avroSchema.fields.get(1).type.type == AvroSchema.Type.INT.name()
+        avroSchema.fields.get(1).type.javaClass == "java.lang.Byte"
+        avroSchema.fields.get(2).name == "testChar"
+        avroSchema.fields.get(2).type.type == AvroSchema.Type.INT.name()
+        avroSchema.fields.get(2).type.javaClass == "java.lang.Character"
+        avroSchema.fields.get(3).name == "testDouble"
+        avroSchema.fields.get(3).type == AvroSchema.Type.DOUBLE.name()
+        avroSchema.fields.get(4).name == "testFloat"
+        avroSchema.fields.get(4).type == AvroSchema.Type.FLOAT.name()
+        avroSchema.fields.get(5).name == "testInt"
+        avroSchema.fields.get(5).type == AvroSchema.Type.INT.name()
+        avroSchema.fields.get(6).name == "testLong"
+        avroSchema.fields.get(6).type == AvroSchema.Type.LONG.name()
+        avroSchema.fields.get(7).name == "testShort"
+        avroSchema.fields.get(7).type.type == AvroSchema.Type.INT.name()
+        avroSchema.fields.get(7).type.javaClass == "java.lang.Short"
     }
 
 }
