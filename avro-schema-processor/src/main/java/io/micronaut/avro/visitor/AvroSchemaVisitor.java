@@ -191,22 +191,17 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
             }
             context.currentOriginatingElements().add(enumElement);
         } else if (isPrimitiveType(type)) {
-            // todo
             avroSchema.setType(getPrimitiveType(avroSchema, type));
-
-
         } else if (type.isAssignable(Number.class)) {
             setNumericType(type, avroSchema, context);
         } else if (type.isAssignable(CharSequence.class)) {
-            if (type.getName().equals("java.lang.Character") || type.getName().equals("char")) {
-                avroSchema.setUnsupported(true);
-                avroSchema.setType(Type.INT);
-                avroSchema.setJavaClass("java.lang.Character");
-            } else {
-                avroSchema.setType(Type.STRING);
-            }
-
-        } else if (type.getName().equals("boolean") || type.getName().equals("java.lang.Boolean")) {
+            avroSchema.setType(Type.STRING);
+        } else if (type.isAssignable(Character.class)) {
+            avroSchema.setUnsupported(true);
+            avroSchema.setType(Type.INT);
+            avroSchema.setJavaClass(type.getCanonicalName());
+        }
+        else if (type.getName().equals("boolean") || type.getName().equals("java.lang.Boolean")) {
             avroSchema.setType(Type.BOOLEAN);
         } else if (type.isAssignable(Temporal.class) || type.isAssignable(TemporalAmount.class)) {
             setTemporalType(type, avroSchema, context);
@@ -282,7 +277,6 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
                 } else {
                     avroSchema.setType(Type.STRING);
                 }
-
             }
             case "java.math.BigInteger" -> {
                 // BigInteger doesn't have a specific logical type
@@ -290,18 +284,11 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
                 avroSchema.setUnsupported(true);
                 avroSchema.setJavaClass(type.getCanonicalName());
             }
-            case "java.lang.Short" -> {
+            case "java.lang.Short", "java.lang.Byte" -> {
                 avroSchema.setUnsupported(true);
                 avroSchema.setType(Type.INT);
-                avroSchema.setJavaClass("java.lang.Short");
+                avroSchema.setJavaClass(type.getCanonicalName());
             }
-            case "java.lang.Byte" -> {
-                avroSchema.setUnsupported(true);
-                avroSchema.setType(Type.INT);
-                avroSchema.setJavaClass("java.lang.Byte");
-            }
-
-            default -> avroSchema.setType(Type.DOUBLE);
         }
     }
 
