@@ -15,7 +15,7 @@
  */
 package io.micronaut.avro.serde;
 
-import io.micronaut.avro.serde.loader.AvroSchemaLoader;
+import io.micronaut.core.io.ResourceLoader;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
@@ -24,6 +24,7 @@ import io.micronaut.avro.model.AvroSchema;
 import io.micronaut.serde.Encoder;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
@@ -47,16 +48,18 @@ public final class AvroSerdeEncoder implements Encoder {
     private final boolean isArray;
     private final AvroSchema schema;
     private final AvroSerdeEncoder parent;
+    private final ResourceLoader resourceLoader;
 
     private final Map<String, EncodingRunnable> objectBuffer = new TreeMap<>();
     private final List<EncodingRunnable> arrayBuffer = new ArrayList<>();
     private String currentKey;
 
-    private AvroSerdeEncoder(org.apache.avro.io.Encoder delegate, boolean isArray, AvroSchema schema, AvroSerdeEncoder parent) {
+    private AvroSerdeEncoder(org.apache.avro.io.Encoder delegate, boolean isArray, AvroSchema schema, AvroSerdeEncoder parent, ResourceLoader resourceLoader) {
         this.delegate = delegate;
         this.isArray = isArray;
         this.schema = schema;
         this.parent = parent;
+        this.resourceLoader = resourceLoader;
     }
 
     /**
@@ -64,13 +67,13 @@ public final class AvroSerdeEncoder implements Encoder {
      *
      * @param delegate Delegate encoder used for actual encoding.
      */
-    public AvroSerdeEncoder(org.apache.avro.io.Encoder delegate) {
-        this(delegate, false, null, null);
+    public AvroSerdeEncoder(org.apache.avro.io.Encoder delegate, ResourceLoader resourceLoader) {
+        this(delegate, false, null, null, resourceLoader);
     }
 
     @Override
     public @NonNull Encoder encodeArray(@NonNull Argument<?> type) throws IOException {
-        AvroSerdeEncoder child = new AvroSerdeEncoder(delegate, true, null, this);
+        AvroSerdeEncoder child = new AvroSerdeEncoder(delegate, true, null, this, resourceLoader);
 
         EncodingRunnable arrayWriter = () -> {
             delegate.writeArrayStart();
@@ -100,12 +103,15 @@ public final class AvroSerdeEncoder implements Encoder {
         Class<?> targetClass = type.getType();
         if (targetClass.isAnnotationPresent(AvroSchemaSource.class)) {
             String schemaLocation = targetClass.getAnnotation(AvroSchemaSource.class).value();
-            ObjectMapper objectMapper = ObjectMapper.getDefault();
-            AvroSchema avroSchema = AvroSchemaLoader.load(schemaLocation, objectMapper, targetClass.getClassLoader());
-            return new AvroSerdeEncoder(delegate, isArray, avroSchema, this);
+            try(InputStream stream = resourceLoader.getResourceAsStream(schemaLocation).orElseThrow(() ->
+                new IOException("Schema location " + schemaLocation + " not found")))
+            {
+                AvroSchema avroSchema = ObjectMapper.getDefault().readValue(stream, AvroSchema.class);
+                return new AvroSerdeEncoder(delegate, isArray, avroSchema, this, resourceLoader);
+            }
         }
 
-        return new AvroSerdeEncoder(delegate, false, null, this);
+        return new AvroSerdeEncoder(delegate, false, null, this, resourceLoader);
     }
 
     @Override
