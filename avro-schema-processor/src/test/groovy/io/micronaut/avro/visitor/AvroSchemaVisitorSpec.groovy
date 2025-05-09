@@ -301,4 +301,30 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
         avroSchema.fields.get(7).type.javaClass == "java.lang.Short"
     }
 
+    void "schema with list of schema type" (){
+        given :
+        def avroSchema = buildAvroSchema("test.Person", "Person", """
+
+        package dev.test.avro;
+
+        import io.micronaut.avro.Avro;
+        import java.util.List;
+        @Avro
+        public record Person(
+                Person person,
+                List<Person> personList
+        ){
+
+        }
+""")
+        expect:
+        avroSchema.name == "Person"
+        avroSchema.type == AvroSchema.Type.RECORD.name()
+        avroSchema.fields.get(0).name == "person"
+        avroSchema.fields.get(0).type == "Person"
+        avroSchema.fields.get(1).name == "personList"
+        avroSchema.fields.get(1).type.type == AvroSchema.Type.ARRAY.name()
+        avroSchema.fields.get(1).type.javaClass == "java.util.List"
+    }
+
 }
