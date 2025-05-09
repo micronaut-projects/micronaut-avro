@@ -110,6 +110,7 @@ public class AvroEncoderTest {
             Argument<? extends Point> type = Argument.of(Point.class);
             Point value = new Point(3, 27);
             int[] coords = {2, 3, 5, 1, 5, 9};
+            encoder.encodeKey("points");
             try (Encoder array = encoder.encodeArray(type)) {
                 array.encodeInt(coords[0]);
                 array.encodeInt(coords[1]);
@@ -270,6 +271,7 @@ public class AvroEncoderTest {
         try ( ApplicationContext ctx = ApplicationContext.run();
               AvroSerdeEncoder encoder = new AvroSerdeEncoder(binaryEncoder, ctx.getEnvironment()) ){
             String[] strings = {"foo", "bar", "baz"};
+            encoder.encodeKey("strings");
             Argument<? extends String> argument = Argument.of(String.class);
             Encoder arrayEncoder = encoder.encodeArray(argument);
             arrayEncoder.encodeString(strings[0]);

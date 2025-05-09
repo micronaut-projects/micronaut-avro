@@ -91,8 +91,6 @@ public final class AvroSerdeEncoder implements Encoder {
         } else if (currentKey != null) {
             objectBuffer.put(currentKey, arrayWriter);
             currentKey = null;
-        } else {
-            objectBuffer.put("__TOP_LEVEL_ARRAY__", arrayWriter);
         }
 
         return child;
@@ -116,14 +114,6 @@ public final class AvroSerdeEncoder implements Encoder {
 
     @Override
     public void finishStructure() throws IOException {
-        if (isArray) {
-            if (objectBuffer.containsKey("__TOP_LEVEL_ARRAY__")) {
-                EncodingRunnable fieldEncoder = objectBuffer.get("__TOP_LEVEL_ARRAY__");
-                fieldEncoder.run();
-            }
-            return;
-        }
-
         if (schema != null) {
             for (AvroSchema.Field field : schema.getFields()) {
                 EncodingRunnable fieldEncoder = objectBuffer.get(field.getName());
@@ -141,8 +131,10 @@ public final class AvroSerdeEncoder implements Encoder {
         if (parent != null && parent.currentKey != null) {
             parent.objectBuffer.put(parent.currentKey, () -> { });
             parent.currentKey = null;
+        } else if (parent == null){
+            delegate.flush();
         }
-        delegate.flush();
+
     }
 
     @Override
