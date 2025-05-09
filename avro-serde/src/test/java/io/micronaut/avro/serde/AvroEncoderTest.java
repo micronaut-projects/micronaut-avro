@@ -108,18 +108,15 @@ public class AvroEncoderTest {
         try (ApplicationContext ctx = ApplicationContext.run();
               AvroSerdeEncoder encoder = new AvroSerdeEncoder(binaryEncoder, ctx.getEnvironment())){
             Argument<? extends Point> type = Argument.of(Point.class);
-            Point value = new Point(3, 27);
             int[] coords = {2, 3, 5, 1, 5, 9};
-            encoder.encodeKey("points");
-            try (Encoder array = encoder.encodeArray(type)) {
-                array.encodeInt(coords[0]);
-                array.encodeInt(coords[1]);
-                array.encodeInt(coords[2]);
-                array.encodeInt(coords[3]);
-                array.encodeInt(coords[4]);
-                array.encodeInt(coords[5]);
-
-            }
+            Encoder objEncoder = encoder.encodeObject(type);
+                objEncoder.encodeKey("points");
+                try (Encoder array = objEncoder.encodeArray(Argument.of(Integer.class))) {
+                    for (int cord : coords) {
+                        array.encodeInt(cord);
+                    }
+                }
+            objEncoder.finishStructure();
         }
         // Inspect raw bytes
         byte[] actualResult = outputStream.toByteArray();
@@ -271,12 +268,17 @@ public class AvroEncoderTest {
         try (ApplicationContext ctx = ApplicationContext.run();
               AvroSerdeEncoder encoder = new AvroSerdeEncoder(binaryEncoder, ctx.getEnvironment())){
             String[] strings = {"foo", "bar", "baz"};
-            encoder.encodeKey("strings");
+
             Argument<? extends String> argument = Argument.of(String.class);
-            Encoder arrayEncoder = encoder.encodeArray(argument);
-            arrayEncoder.encodeString(strings[0]);
-            arrayEncoder.encodeString(strings[1]);
-            arrayEncoder.encodeString(strings[2]);
+            Encoder objEncoder = encoder.encodeObject(argument);
+            objEncoder.encodeKey("strings");
+            try (
+                Encoder arrayEncoder = objEncoder.encodeArray(argument)){
+                for (String string : strings) {
+                    arrayEncoder.encodeString(string);
+                }
+                objEncoder.finishStructure();
+            }
         }
 
         byte[] avroData = outputStream.toByteArray();
@@ -288,7 +290,7 @@ public class AvroEncoderTest {
     @Test
     public void serializeNestedStructure() throws IOException {
         // Define the Salamander class with Avro schema annotation
-        @AvroSchemaSource("classpath:Salamander-schema.avsc")
+        @AvroSchemaSource("classpath:Salamander2-schema.avsc")
         class Salamander {
             private String name;
             private List<List<List<String>>> words;
