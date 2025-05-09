@@ -15,6 +15,8 @@
  */
 package io.micronaut.avro;
 
+import io.micronaut.serde.annotation.Serdeable;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
@@ -26,6 +28,7 @@ import java.lang.annotation.Target;
  * @author Ali Linaboui
  */
 @Target({ ElementType.TYPE, ElementType.FIELD })
+@Serdeable
 public @interface Avro {
 
     /**
