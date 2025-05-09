@@ -200,8 +200,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
             avroSchema.setUnsupported(true);
             avroSchema.setType(Type.INT);
             avroSchema.setJavaClass(type.getCanonicalName());
-        }
-        else if (type.getName().equals("boolean") || type.getName().equals("java.lang.Boolean")) {
+        } else if (type.getName().equals("boolean") || type.getName().equals("java.lang.Boolean")) {
             avroSchema.setType(Type.BOOLEAN);
         } else if (type.isAssignable(Temporal.class) || type.isAssignable(TemporalAmount.class)) {
             setTemporalType(type, avroSchema, context);
@@ -289,6 +288,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
                 avroSchema.setType(Type.INT);
                 avroSchema.setJavaClass(type.getCanonicalName());
             }
+            default -> throw new IllegalStateException("Unexpected type: " + type.getName());
         }
     }
 

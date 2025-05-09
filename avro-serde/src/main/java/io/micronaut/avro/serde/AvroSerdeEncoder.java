@@ -66,6 +66,7 @@ public final class AvroSerdeEncoder implements Encoder {
      * Constructs a new AvroSerdeEncoder instance.
      *
      * @param delegate Delegate encoder used for actual encoding.
+     * @param resourceLoader resource loader used to load schema based on prefixes
      */
     public AvroSerdeEncoder(org.apache.avro.io.Encoder delegate, ResourceLoader resourceLoader) {
         this(delegate, false, null, null, resourceLoader);
@@ -101,9 +102,8 @@ public final class AvroSerdeEncoder implements Encoder {
         Class<?> targetClass = type.getType();
         if (targetClass.isAnnotationPresent(AvroSchemaSource.class)) {
             String schemaLocation = targetClass.getAnnotation(AvroSchemaSource.class).value();
-            try(InputStream stream = resourceLoader.getResourceAsStream(schemaLocation).orElseThrow(() ->
-                new IOException("Schema location " + schemaLocation + " not found")))
-            {
+            try (InputStream stream = resourceLoader.getResourceAsStream(schemaLocation).orElseThrow(() ->
+                new IOException("Schema location " + schemaLocation + " not found"))) {
                 AvroSchema avroSchema = ObjectMapper.getDefault().readValue(stream, AvroSchema.class);
                 return new AvroSerdeEncoder(delegate, isArray, avroSchema, this, resourceLoader);
             }
@@ -131,7 +131,7 @@ public final class AvroSerdeEncoder implements Encoder {
         if (parent != null && parent.currentKey != null) {
             parent.objectBuffer.put(parent.currentKey, () -> { });
             parent.currentKey = null;
-        } else if (parent == null){
+        } else if (parent == null) {
             delegate.flush();
         }
 

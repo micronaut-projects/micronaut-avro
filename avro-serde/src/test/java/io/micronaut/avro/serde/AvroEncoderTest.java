@@ -23,8 +23,8 @@ public class AvroEncoderTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         org.apache.avro.io.Encoder encoder = EncoderFactory.get().binaryEncoder(outputStream, null);
 
-        try ( ApplicationContext ctx = ApplicationContext.run();
-              AvroSerdeEncoder avroEncoder = new AvroSerdeEncoder(encoder, ctx.getEnvironment()) ){
+        try (ApplicationContext ctx = ApplicationContext.run();
+              AvroSerdeEncoder avroEncoder = new AvroSerdeEncoder(encoder, ctx.getEnvironment())){
             avroEncoder.encodeString("foo");
         }
 
@@ -38,8 +38,8 @@ public class AvroEncoderTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         org.apache.avro.io.Encoder encoder = EncoderFactory.get().binaryEncoder(outputStream, null);
 
-        try ( ApplicationContext ctx = ApplicationContext.run();
-              AvroSerdeEncoder avroEncoder = new AvroSerdeEncoder(encoder, ctx.getEnvironment()) ){
+        try (ApplicationContext ctx = ApplicationContext.run();
+              AvroSerdeEncoder avroEncoder = new AvroSerdeEncoder(encoder, ctx.getEnvironment())){
             avroEncoder.encodeString("");
         }
 
@@ -54,8 +54,8 @@ public class AvroEncoderTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         org.apache.avro.io.Encoder encoder = EncoderFactory.get().binaryEncoder(outputStream, null);
 
-        try ( ApplicationContext ctx = ApplicationContext.run();
-            AvroSerdeEncoder avroEncoder = new AvroSerdeEncoder(encoder, ctx.getEnvironment()) ){
+        try (ApplicationContext ctx = ApplicationContext.run();
+            AvroSerdeEncoder avroEncoder = new AvroSerdeEncoder(encoder, ctx.getEnvironment())){
             avroEncoder.encodeInt(10);
         }
 
@@ -69,8 +69,8 @@ public class AvroEncoderTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         org.apache.avro.io.Encoder binaryEncoder = EncoderFactory.get().binaryEncoder(outputStream, null);
 
-        try ( ApplicationContext ctx = ApplicationContext.run();
-              AvroSerdeEncoder encoder = new AvroSerdeEncoder(binaryEncoder, ctx.getEnvironment()) ){
+        try (ApplicationContext ctx = ApplicationContext.run();
+              AvroSerdeEncoder encoder = new AvroSerdeEncoder(binaryEncoder, ctx.getEnvironment())){
             encoder.encodeKey("name");
             encoder.encodeString("foo");
             encoder.encodeKey("age");
@@ -105,8 +105,8 @@ public class AvroEncoderTest {
         org.apache.avro.io.Encoder binaryEncoder = EncoderFactory.get().binaryEncoder(outputStream, null);
 
         // try-with-resource
-        try ( ApplicationContext ctx = ApplicationContext.run();
-              AvroSerdeEncoder encoder = new AvroSerdeEncoder(binaryEncoder, ctx.getEnvironment()) ){
+        try (ApplicationContext ctx = ApplicationContext.run();
+              AvroSerdeEncoder encoder = new AvroSerdeEncoder(binaryEncoder, ctx.getEnvironment())){
             Argument<? extends Point> type = Argument.of(Point.class);
             Point value = new Point(3, 27);
             int[] coords = {2, 3, 5, 1, 5, 9};
@@ -155,8 +155,8 @@ public class AvroEncoderTest {
         org.apache.avro.io.Encoder binaryEncoder = EncoderFactory.get().binaryEncoder(out, null);
 
         // try-with-resource
-        try ( ApplicationContext ctx = ApplicationContext.run();
-              AvroSerdeEncoder encoder = new AvroSerdeEncoder(binaryEncoder, ctx.getEnvironment()) ){
+        try (ApplicationContext ctx = ApplicationContext.run();
+              AvroSerdeEncoder encoder = new AvroSerdeEncoder(binaryEncoder, ctx.getEnvironment())){
             Argument<? extends Male> type = Argument.of(Male.class);
             Male male = new Male("foo", 23);
 
@@ -204,8 +204,8 @@ public class AvroEncoderTest {
         // Output stream for the serialized data
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         org.apache.avro.io.Encoder binaryEncoder = EncoderFactory.get().binaryEncoder(out, null);
-        try ( ApplicationContext ctx = ApplicationContext.run();
-              AvroSerdeEncoder encoder = new AvroSerdeEncoder(binaryEncoder, ctx.getEnvironment()) ){
+        try (ApplicationContext ctx = ApplicationContext.run();
+              AvroSerdeEncoder encoder = new AvroSerdeEncoder(binaryEncoder, ctx.getEnvironment())){
             Argument<Salamander> type = Argument.of(Salamander.class);
             Encoder objectEncoder = encoder.encodeObject(type);
 
@@ -250,8 +250,8 @@ public class AvroEncoderTest {
         BigDecimal bd = new BigDecimal("12.1232");
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         org.apache.avro.io.Encoder binaryEncoder = EncoderFactory.get().binaryEncoder(outputStream, null);
-        try ( ApplicationContext ctx = ApplicationContext.run();
-              AvroSerdeEncoder encoder = new AvroSerdeEncoder(binaryEncoder, ctx.getEnvironment()) ){
+        try (ApplicationContext ctx = ApplicationContext.run();
+              AvroSerdeEncoder encoder = new AvroSerdeEncoder(binaryEncoder, ctx.getEnvironment())){
             encoder.encodeKey("bigDecimal");
             encoder.encodeBigDecimal(bd);
             encoder.encodeKey("float");
@@ -268,8 +268,8 @@ public class AvroEncoderTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         org.apache.avro.io.Encoder binaryEncoder = EncoderFactory.get().binaryEncoder(outputStream, null);
 
-        try ( ApplicationContext ctx = ApplicationContext.run();
-              AvroSerdeEncoder encoder = new AvroSerdeEncoder(binaryEncoder, ctx.getEnvironment()) ){
+        try (ApplicationContext ctx = ApplicationContext.run();
+              AvroSerdeEncoder encoder = new AvroSerdeEncoder(binaryEncoder, ctx.getEnvironment())){
             String[] strings = {"foo", "bar", "baz"};
             encoder.encodeKey("strings");
             Argument<? extends String> argument = Argument.of(String.class);
@@ -307,8 +307,8 @@ public class AvroEncoderTest {
         // Output stream for the serialized data
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         org.apache.avro.io.Encoder binaryEncoder = EncoderFactory.get().binaryEncoder(out, null);
-        try ( ApplicationContext ctx = ApplicationContext.run();
-              AvroSerdeEncoder encoder = new AvroSerdeEncoder(binaryEncoder, ctx.getEnvironment()) ){
+        try (ApplicationContext ctx = ApplicationContext.run();
+              AvroSerdeEncoder encoder = new AvroSerdeEncoder(binaryEncoder, ctx.getEnvironment())){
             Argument<Salamander> type = Argument.of(Salamander.class);
             Encoder objectEncoder = encoder.encodeObject(type);
 
