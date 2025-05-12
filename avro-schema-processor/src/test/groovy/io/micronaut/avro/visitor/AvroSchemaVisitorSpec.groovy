@@ -225,8 +225,6 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
                 Map<String, Map<String, String>>  doubleMap,
                 boolean isOkay,
                 BigInteger bigInt,
-                @Avro(namespace = "test.namespace"
-                , name = "ali")
                 Date date,
                 Timestamp timestamp,
                 Salamander salamander,
