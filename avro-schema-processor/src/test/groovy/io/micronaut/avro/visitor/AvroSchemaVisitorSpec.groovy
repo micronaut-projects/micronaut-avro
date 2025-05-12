@@ -163,6 +163,7 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
         package test;
 
         import io.micronaut.avro.Avro;
+        import io.micronaut.serde.annotation.Serdeable;
 
         import java.time.Duration;import java.time.LocalDate;import java.util.*;
 
@@ -178,6 +179,7 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
                 Date date
 
         ) {
+            @Serdeable
             class Male {
                 int age;
                 String name;
@@ -223,6 +225,8 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
                 Map<String, Map<String, String>>  doubleMap,
                 boolean isOkay,
                 BigInteger bigInt,
+                @Avro(namespace = "test.namespace"
+                , name = "ali")
                 Date date,
                 Timestamp timestamp,
                 Salamander salamander,
@@ -325,6 +329,34 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
         avroSchema.fields.get(1).name == "personList"
         avroSchema.fields.get(1).type.type == AvroSchema.Type.ARRAY.name()
         avroSchema.fields.get(1).type.javaClass == "java.util.List"
+    }
+
+    void "Avro field" (){
+        given :
+        def avroSchema = buildAvroSchema("test.Person", "Person", """
+
+        package dev.test.avro;
+
+        import io.micronaut.avro.Avro;
+        import java.util.List;
+        import java.util.Date;
+        @Avro(
+                namespace = "test.namespace"
+        )
+        public record Person(
+
+                @Avro(
+                        name = "test",
+                        aliases = {"alias-1", "alias-2"},
+                        doc = "its a doc"
+                )
+                Date date
+        ){
+
+        }
+""")
+        expect:
+        avroSchema.name == "Person"
     }
 
 }

@@ -295,7 +295,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
     private static void setBeanSchemaFields(ClassElement element, VisitorContext visitorContext, AvroSchemaContext context, AvroSchema avroSchema) {
         avroSchema.setType(Type.RECORD);
 
-        avroSchema.setNamespace(element.getPackageName());
+        //avroSchema.setNamespace(element.getPackageName());
         context.currentOriginatingElements().add(element);
         if (avroSchema.getName() == null) {
             avroSchema.setName(element.getCanonicalName());
@@ -303,17 +303,20 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
         context.createdSchemasByType().put(element.getName(), avroSchema);
         for (PropertyElement property : element.getBeanProperties()) {
             AvroSchema.Field field = new AvroSchema.Field();
-            field.setName(property.getName());
 
             if (property.hasAnnotation(Avro.class)) {
                 AnnotationValue<Avro> fieldSchema = property.getAnnotation(Avro.class);
+                field.setName(fieldSchema.stringValue("name")
+                    .orElse(property.getName()));
                 String[] aliases = fieldSchema.stringValues("aliases");
                 if (aliases.length > 0) {
                     field.setAliases(Arrays.asList(aliases));
                 }
                 fieldSchema.stringValue("doc").ifPresent(field::setDoc);
             }
-
+            if (field.getName() == null) {
+                field.setName(property.getName());
+            }
             // Create schema for the property
             AvroSchema propertySchema = createSchema(property, visitorContext, context);
             if ((isPrimitiveType(property.getType()) || isPrimitiveAvroType(propertySchema.getType())) && !isLogicalAvroType(propertySchema.getLogicalType()) && !propertySchema.isUnsupported() || propertySchema.isRefType()) {
