@@ -239,6 +239,7 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
                 Arrays arrays,
                 Vector<String> vector
         ){
+            @Avro
             class Male {
                 int age;
                 String name;
@@ -342,13 +343,7 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
                 namespace = "test.namespace"
         )
         public record Person(
-
-                @Avro(
-                        name = "test",
-                        aliases = {"alias-1", "alias-2"},
-                        doc = "its a doc"
-                )
-                Date date
+            Date date
         ){
 
         }

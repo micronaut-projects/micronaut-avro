@@ -33,6 +33,7 @@ import io.micronaut.inject.ast.TypedElement;
 import io.micronaut.inject.visitor.TypeElementVisitor;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.inject.writer.GeneratedFile;
+import io.micronaut.serde.annotation.Serdeable;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -295,38 +296,40 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
     private static void setBeanSchemaFields(ClassElement element, VisitorContext visitorContext, AvroSchemaContext context, AvroSchema avroSchema) {
         avroSchema.setType(Type.RECORD);
 
-        //avroSchema.setNamespace(element.getPackageName());
         context.currentOriginatingElements().add(element);
         if (avroSchema.getName() == null) {
-            avroSchema.setName(element.getCanonicalName());
+            avroSchema.setName(element.getSimpleName());
         }
+        avroSchema.setNamespace(element.getPackageName());
         context.createdSchemasByType().put(element.getName(), avroSchema);
-        for (PropertyElement property : element.getBeanProperties()) {
-            AvroSchema.Field field = new AvroSchema.Field();
-
-            if (property.hasAnnotation(Avro.class)) {
-                AnnotationValue<Avro> fieldSchema = property.getAnnotation(Avro.class);
-                field.setName(fieldSchema.stringValue("name")
-                    .orElse(property.getName()));
-                String[] aliases = fieldSchema.stringValues("aliases");
-                if (aliases.length > 0) {
-                    field.setAliases(Arrays.asList(aliases));
+        if (element.hasAnnotation(Avro.class) || element.hasAnnotation(Serdeable.class)) {
+            for (PropertyElement property : element.getBeanProperties()) {
+                AvroSchema.Field field = new AvroSchema.Field();
+                if (property.hasAnnotation(Avro.class)) {
+                    AnnotationValue<Avro> fieldSchema = property.getAnnotation(Avro.class);
+                    field.setName(fieldSchema.stringValue("name")
+                        .orElse(property.getName()));
+                    String[] aliases = fieldSchema.stringValues("aliases");
+                    if (aliases.length > 0) {
+                        field.setAliases(Arrays.asList(aliases));
+                    }
+                    fieldSchema.stringValue("doc").ifPresent(field::setDoc);
                 }
-                fieldSchema.stringValue("doc").ifPresent(field::setDoc);
-            }
-            if (field.getName() == null) {
-                field.setName(property.getName());
-            }
-            // Create schema for the property
-            AvroSchema propertySchema = createSchema(property, visitorContext, context);
-            if ((isPrimitiveType(property.getType()) || isPrimitiveAvroType(propertySchema.getType())) && !isLogicalAvroType(propertySchema.getLogicalType()) && !propertySchema.isUnsupported() || propertySchema.isRefType()) {
-                field.setType(propertySchema.getType());
-            } else {
-                field.setType(propertySchema);
-            }
+                if (field.getName() == null) {
+                    field.setName(property.getName());
+                }
+                // Create schema for the property
+                AvroSchema propertySchema = createSchema(property, visitorContext, context);
+                if ((isPrimitiveType(property.getType()) || isPrimitiveAvroType(propertySchema.getType())) && !isLogicalAvroType(propertySchema.getLogicalType()) && !propertySchema.isUnsupported() || propertySchema.isRefType()) {
+                    field.setType(propertySchema.getType());
+                } else {
+                    field.setType(propertySchema);
+                }
 
-            avroSchema.addField(field);
+                avroSchema.addField(field);
+            }
         }
+
     }
 
     private static void writeSchema(AvroSchema avroSchema, ClassElement originatingElement, VisitorContext visitorContext, AvroSchemaContext context) {
@@ -339,11 +342,13 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
             visitorContext.info("Generating Avro schema file for type [" + originatingElement.getSimpleName() + "]: " + specFile.getName());
             try (OutputStream outputStream = specFile.openOutputStream()) {
                 ObjectMapper mapper = ObjectMapper.getDefault();
-                List<AvroSchema.Field> sortedFields = avroSchema.getFields().stream()
-                    .sorted(Comparator.comparing(AvroSchema.Field::getName))
-                    .collect(Collectors.toList());
-                avroSchema.setFields(sortedFields);
-                mapper.writeValue(outputStream, avroSchema);
+                if (avroSchema.getFields() != null) {
+                    List<AvroSchema.Field> sortedFields = avroSchema.getFields().stream()
+                        .sorted(Comparator.comparing(AvroSchema.Field::getName))
+                        .collect(Collectors.toList());
+                    avroSchema.setFields(sortedFields);
+                    mapper.writeValue(outputStream, avroSchema);
+                }
             } catch (IOException e) {
                 throw new RuntimeException("Failed writing Avro schema " + specFile.getName() + " file: " + e, e);
             }
