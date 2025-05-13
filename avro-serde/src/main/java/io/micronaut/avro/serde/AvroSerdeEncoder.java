@@ -198,7 +198,7 @@ public final class AvroSerdeEncoder implements Encoder {
 
     @Override
     public void encodeBigInteger(@NonNull BigInteger value) throws IOException {
-        validateType(value, AvroSchema.Type.LONG);
+        validateType(value, AvroSchema.Type.STRING);
         buffer(() -> delegate.writeBytes(value.toByteArray()));
     }
 
@@ -252,21 +252,36 @@ public final class AvroSerdeEncoder implements Encoder {
     }
 
     private boolean isValidType(Object value, AvroSchema.Type expectedType) throws IOException {
-        // todo to be updated and remove instance of
+        if (value == null) {
+            return expectedType == AvroSchema.Type.NULL;
+        }
+
+        Class<?> valueClass = value.getClass();
         return switch (expectedType) {
-            case STRING -> value instanceof String || value instanceof BigDecimal;
-            case BOOLEAN -> value instanceof Boolean;
-            case INT -> value instanceof Integer || value instanceof Short || value instanceof Byte || value instanceof Character;
-            case LONG -> value instanceof Long;
-            case FLOAT -> value instanceof Float;
-            case DOUBLE -> value instanceof Double;
-            case BYTES, FIXED -> value instanceof byte[] || value instanceof Byte[];
-            case NULL -> false;
-            case ARRAY -> value instanceof Collection;
-            case RECORD -> value instanceof Map || value instanceof Record;
-            case ENUM -> value instanceof Enum;
+            case STRING ->
+                isAssignable(valueClass, String.class) || isAssignable(valueClass, BigDecimal.class);
+            case BOOLEAN -> isAssignable(valueClass, Boolean.class);
+            case INT ->
+                isAssignable(valueClass, Integer.class) || isAssignable(valueClass, Short.class)
+                    || isAssignable(valueClass, Byte.class) || isAssignable(valueClass, Character.class)
+                    || isAssignable(valueClass, BigInteger.class);
+            case LONG -> isAssignable(valueClass, Long.class);
+            case FLOAT -> isAssignable(valueClass, Float.class);
+            case DOUBLE -> isAssignable(valueClass, Double.class);
+            case BYTES, FIXED ->
+                isAssignable(valueClass, byte[].class) || isAssignable(valueClass, Byte[].class);
+            case ARRAY -> isAssignable(valueClass, Collection.class);
+            case MAP ->
+                isAssignable(valueClass, Map.class);
+            case ENUM -> valueClass.isEnum();
+            case NULL ->
+                false;
             default -> throw new IOException("Unknown Avro type: " + expectedType);
         };
+    }
+
+    private boolean isAssignable(Class<?> clazz, Class<?> target) {
+        return target.isAssignableFrom(clazz);
     }
 
 }
