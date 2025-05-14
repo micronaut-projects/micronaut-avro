@@ -3,5 +3,5 @@ plugins {
 }
 
 dependencies {
-    compileOnly(mnSerde.micronaut.serde.jackson)
+    compileOnly(mnSerde.micronaut.serde.api)
 }
