@@ -302,7 +302,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
         }
         avroSchema.setNamespace(element.getPackageName());
         context.createdSchemasByType().put(element.getName(), avroSchema);
-        if (element.hasAnnotation(Avro.class) || element.hasAnnotation(Serdeable.class)) {
+        if (element.hasAnnotation(Avro.class)) {
             for (PropertyElement property : element.getBeanProperties()) {
                 AvroSchema.Field field = new AvroSchema.Field();
                 if (property.hasAnnotation(Avro.class)) {
