@@ -10,7 +10,10 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
         package test.me.models;
 
         import io.micronaut.avro.Avro;
-        import java.util.*;
+        import java.util.Map;
+        import java.util.List;
+        import java.util.Set;
+        import java.util.Vector;
         import java.math.BigDecimal;
 
         @Avro
@@ -55,7 +58,6 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
         import io.micronaut.avro.Avro;
         import java.time.LocalDate;
         import java.time.LocalTime;
-        import java.util.*;
 
         @Avro(
                 name = "salamander",
@@ -96,7 +98,7 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
 
         import io.micronaut.avro.Avro;
         import java.time.LocalDate;
-        import java.util.*;
+        import java.util.List;
         @Avro(
                 name = "salamander",
                 doc = "this a salamander class",
@@ -135,8 +137,6 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
         package test;
 
         import io.micronaut.avro.Avro;
-        import java.time.LocalDate;
-        import java.util.*;
 
         @Avro
         public class Salamander{
@@ -165,7 +165,10 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
         import io.micronaut.avro.Avro;
         import io.micronaut.serde.annotation.Serdeable;
 
-        import java.time.Duration;import java.time.LocalDate;import java.util.*;
+        import java.time.Duration;
+        import java.time.LocalDate;
+        import java.util.Date;
+        import java.util.UUID;
 
         @Avro(
                 name = "Salamander",
@@ -211,7 +214,13 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
         import java.time.LocalDate;
         import java.time.OffsetDateTime;
         import java.time.OffsetTime;
-        import java.util.*;
+        import java.util.Set;
+        import java.util.List;
+        import java.util.UUID;
+        import java.util.Arrays;
+        import java.util.Vector;
+        import java.util.Map;
+        import java.util.Date;
 
         @Avro
         public record Salamander (
