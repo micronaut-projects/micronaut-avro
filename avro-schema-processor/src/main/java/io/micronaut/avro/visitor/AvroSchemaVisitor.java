@@ -345,7 +345,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
                 if (avroSchema.getFields() != null) {
                     List<AvroSchema.Field> sortedFields = avroSchema.getFields().stream()
                         .sorted(Comparator.comparing(AvroSchema.Field::getName))
-                        .collect(Collectors.toList());
+                        .toList();
                     avroSchema.setFields(sortedFields);
                     mapper.writeValue(outputStream, avroSchema);
                 }
