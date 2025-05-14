@@ -157,7 +157,7 @@ public final class AvroSerdeEncoder implements Encoder {
     @Override
     public void encodeByte(byte value) throws IOException {
         validateType(value, AvroSchema.Type.INT);
-        buffer(() -> delegate.writeFixed(new byte[]{value}));
+        buffer(() -> delegate.writeInt(value));
     }
 
     @Override
