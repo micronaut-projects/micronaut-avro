@@ -33,7 +33,6 @@ import io.micronaut.inject.ast.TypedElement;
 import io.micronaut.inject.visitor.TypeElementVisitor;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.inject.writer.GeneratedFile;
-import io.micronaut.serde.annotation.Serdeable;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -46,7 +45,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static io.micronaut.avro.visitor.context.AvroSchemaContext.AVRO_SCHEMA_CONTEXT_PROPERTY;
 

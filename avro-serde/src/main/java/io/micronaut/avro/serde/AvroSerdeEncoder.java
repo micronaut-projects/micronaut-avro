@@ -21,6 +21,7 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.avro.AvroSchemaSource;
 import io.micronaut.avro.model.AvroSchema;
+import io.micronaut.avro.model.AvroSchema.Type;
 import io.micronaut.serde.Encoder;
 
 import java.io.IOException;
@@ -31,7 +32,6 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Collection;
 import java.util.TreeMap;
 
 /***
@@ -76,7 +76,7 @@ public final class AvroSerdeEncoder implements Encoder {
     public @NonNull Encoder encodeArray(@NonNull Argument<?> type) throws IOException {
         AvroSerdeEncoder child = new AvroSerdeEncoder(delegate, true, null, this, resourceLoader);
 
-        EncodingRunnable arrayWriter = () -> {
+        EncodingRunnable arrayWriter = new TypeAwareEncodingRunnable(Type.ARRAY, () -> {
             delegate.writeArrayStart();
             delegate.setItemCount(child.arrayBuffer.size());
             for (EncodingRunnable r : child.arrayBuffer) {
@@ -84,13 +84,13 @@ public final class AvroSerdeEncoder implements Encoder {
                 r.run();
             }
             delegate.writeArrayEnd();
-        };
+        });
 
         if (isArray) {
             // Add the child array as an item
-            arrayBuffer.add(arrayWriter);
+            arrayBuffer.add(new TypeAwareEncodingRunnable(Type.ARRAY, arrayWriter));
         } else if (currentKey != null) {
-            objectBuffer.put(currentKey, arrayWriter);
+            objectBuffer.put(currentKey, new TypeAwareEncodingRunnable(Type.ARRAY, arrayWriter));
             currentKey = null;
         }
 
@@ -120,7 +120,13 @@ public final class AvroSerdeEncoder implements Encoder {
                 if (fieldEncoder == null) {
                     throw new IOException("Missing field: " + field.getName());
                 }
-                fieldEncoder.run();
+                if (field.getType() instanceof String) {
+                    validateType(field.getType(), fieldEncoder);
+                    fieldEncoder.run();
+                } else if (field.getType() instanceof Map nestedSchema) {
+                    validateType(nestedSchema.get("type"), fieldEncoder);
+                    fieldEncoder.run();
+                }
             }
         } else {
             for (Map.Entry<String, EncodingRunnable> entry : objectBuffer.entrySet()) {
@@ -144,73 +150,62 @@ public final class AvroSerdeEncoder implements Encoder {
 
     @Override
     public void encodeString(@NonNull String value) throws IOException {
-        validateType(value, AvroSchema.Type.STRING);
-        buffer(() -> delegate.writeString(value));
+        buffer(() -> delegate.writeString(value), Type.STRING);
     }
 
     @Override
     public void encodeBoolean(boolean value) throws IOException {
-        validateType(value, AvroSchema.Type.BOOLEAN);
-        buffer(() -> delegate.writeBoolean(value));
+        buffer(() -> delegate.writeBoolean(value), Type.BOOLEAN);
     }
 
     @Override
     public void encodeByte(byte value) throws IOException {
-        validateType(value, AvroSchema.Type.INT);
-        buffer(() -> delegate.writeInt(value));
+        buffer(() -> delegate.writeInt(value), Type.INT);
     }
 
     @Override
     public void encodeShort(short value) throws IOException {
-        validateType(value, AvroSchema.Type.INT);
-        buffer(() -> delegate.writeInt(value));
+        buffer(() -> delegate.writeInt(value), Type.INT);
     }
 
     @Override
     public void encodeChar(char value) throws IOException {
-        validateType(value, AvroSchema.Type.STRING);
-        buffer(() -> delegate.writeInt(value));
+        buffer(() -> delegate.writeInt(value), Type.INT);
     }
 
     @Override
     public void encodeInt(int value) throws IOException {
-        validateType(value, AvroSchema.Type.INT);
-        buffer(() -> delegate.writeInt(value));
+        buffer(() -> delegate.writeInt(value), Type.INT);
     }
 
     @Override
     public void encodeLong(long value) throws IOException {
-        validateType(value, AvroSchema.Type.LONG);
-        buffer(() -> delegate.writeLong(value));
+        buffer(() -> delegate.writeLong(value), Type.LONG);
     }
 
     @Override
     public void encodeFloat(float value) throws IOException {
-        validateType(value, AvroSchema.Type.FLOAT);
-        buffer(() -> delegate.writeFloat(value));
+        buffer(() -> delegate.writeFloat(value), Type.FLOAT);
     }
 
     @Override
     public void encodeDouble(double value) throws IOException {
-        validateType(value, AvroSchema.Type.DOUBLE);
-        buffer(() -> delegate.writeDouble(value));
+        buffer(() -> delegate.writeDouble(value), Type.DOUBLE);
     }
 
     @Override
     public void encodeBigInteger(@NonNull BigInteger value) throws IOException {
-        validateType(value, AvroSchema.Type.STRING);
-        buffer(() -> delegate.writeBytes(value.toByteArray()));
+        buffer(() -> delegate.writeBytes(value.toByteArray()), Type.BYTES);
     }
 
     @Override
     public void encodeBigDecimal(@NonNull BigDecimal value) throws IOException {
-        validateType(value, AvroSchema.Type.STRING);
-        buffer(() -> delegate.writeString(value.toPlainString()));
+        buffer(() -> delegate.writeString(value.toPlainString()), Type.STRING);
     }
 
     @Override
     public void encodeNull() throws IOException {
-        buffer(delegate::writeNull);
+        buffer(delegate::writeNull, Type.NULL);
     }
 
     /**
@@ -218,70 +213,72 @@ public final class AvroSerdeEncoder implements Encoder {
      *
      * @param valueWriter Value writer to buffer.
      */
-    private void buffer(EncodingRunnable valueWriter) throws IOException {
+    private void buffer(EncodingRunnable valueWriter, Type type) throws IOException {
         if (isArray) {
-            arrayBuffer.add(() -> {
+            arrayBuffer.add(new TypeAwareEncodingRunnable(type, () -> {
                 delegate.startItem();
                 valueWriter.run();
-            });
+            }));
         } else if (currentKey != null) {
-            objectBuffer.put(currentKey, valueWriter);
+            objectBuffer.put(currentKey, new TypeAwareEncodingRunnable(type, valueWriter));
             currentKey = null;
         } else {
             valueWriter.run();
         }
     }
 
-    /**
-     * Validates the given value against the expected Avro type.
-     *
-     * @param value        Value to validate.
-     * @param expectedType Expected Avro type.
-     * @throws IOException If the value does not match the expected type.
-     */
-    private void validateType(Object value, AvroSchema.Type expectedType) throws IOException {
-        if (value == null) {
-            return; // null is allowed — Avro handles union with null
-        }
-
-        boolean isValid = isValidType(value, expectedType);
-
-        if (!isValid) {
-            throw new IOException("Invalid value type. Expected: " + expectedType + ", but got: " + value.getClass().getSimpleName());
-        }
-    }
-
-    private boolean isValidType(Object value, AvroSchema.Type expectedType) throws IOException {
-        if (value == null) {
-            return expectedType == AvroSchema.Type.NULL;
-        }
-
-        Class<?> valueClass = value.getClass();
-        return switch (expectedType) {
-            case STRING ->
-                isAssignable(valueClass, String.class) || isAssignable(valueClass, BigDecimal.class);
-            case BOOLEAN -> isAssignable(valueClass, Boolean.class);
-            case INT ->
-                isAssignable(valueClass, Integer.class) || isAssignable(valueClass, Short.class)
-                    || isAssignable(valueClass, Byte.class) || isAssignable(valueClass, Character.class)
-                    || isAssignable(valueClass, BigInteger.class);
-            case LONG -> isAssignable(valueClass, Long.class);
-            case FLOAT -> isAssignable(valueClass, Float.class);
-            case DOUBLE -> isAssignable(valueClass, Double.class);
-            case BYTES, FIXED ->
-                isAssignable(valueClass, byte[].class) || isAssignable(valueClass, Byte[].class);
-            case ARRAY -> isAssignable(valueClass, Collection.class);
-            case MAP ->
-                isAssignable(valueClass, Map.class);
-            case ENUM -> valueClass.isEnum();
-            case NULL ->
-                false;
-            default -> throw new IOException("Unknown Avro type: " + expectedType);
+    private boolean isValidType(Object schemaType, Type type) {
+        return switch ((String) schemaType) {
+            case "null" -> type == Type.NULL;
+            case "boolean" -> type == Type.BOOLEAN;
+            case "int" -> type == Type.INT;
+            case "long" -> type == Type.LONG;
+            case "float" -> type == Type.FLOAT;
+            case "double" -> type == Type.DOUBLE;
+            case "bytes" -> type == Type.BYTES;
+            case "string" -> type == Type.STRING;
+            case "array" -> type == Type.ARRAY;
+            case "map" -> type == Type.MAP;
+            default ->
+                throw new UnsupportedOperationException("Unsupported schema type: " + schemaType);
         };
     }
 
-    private boolean isAssignable(Class<?> clazz, Class<?> target) {
-        return target.isAssignableFrom(clazz);
+    private void validateType(Object schemaType, EncodingRunnable fieldEncoder) throws IOException {
+        // Get the type of the field encoder
+        Type type = getTypeFromEncoder(fieldEncoder);
+
+        // Validate the type against the schema type
+        if (!isValidType(schemaType, type)) {
+            throw new IOException("Type mismatch for field. Expected " + schemaType + " but got " + type);
+        }
     }
 
+    private Type getTypeFromEncoder(EncodingRunnable fieldEncoder) {
+        if (fieldEncoder instanceof TypeAwareEncodingRunnable) {
+            return ((TypeAwareEncodingRunnable) fieldEncoder).getType();
+        } else {
+            throw new UnsupportedOperationException("Type inference not supported for this encoder");
+        }
+    }
+
+}
+
+class TypeAwareEncodingRunnable implements EncodingRunnable {
+    private final Type type;
+    private final EncodingRunnable runnable;
+
+    public TypeAwareEncodingRunnable(Type type, EncodingRunnable runnable) {
+        this.type = type;
+        this.runnable = runnable;
+    }
+
+    @Override
+    public void run() throws IOException {
+        runnable.run();
+    }
+
+    public Type getType() {
+        return type;
+    }
 }

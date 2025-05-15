@@ -414,7 +414,7 @@ public final class AvroSchema {
         }
 
         @JsonCreator
-        static Type fromString(String value) {
+        public static Type fromString(String value) {
             return valueOf(value.toUpperCase(Locale.ENGLISH));
         }
 
