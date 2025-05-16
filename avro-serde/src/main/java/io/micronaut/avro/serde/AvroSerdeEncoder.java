@@ -126,7 +126,10 @@ public final class AvroSerdeEncoder implements Encoder {
                 } else if (field.getType() instanceof Map nestedSchema) {
                     validateType(nestedSchema.get("type"), fieldEncoder);
                     fieldEncoder.run();
+                } else {
+                    throw new UnsupportedOperationException("Unsupported field type: " + field.getType() + " for field: " + field.getName());
                 }
+
             }
         } else {
             for (Map.Entry<String, EncodingRunnable> entry : objectBuffer.entrySet()) {
