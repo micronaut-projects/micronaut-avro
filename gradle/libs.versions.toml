@@ -22,6 +22,8 @@ micronaut-docs = "2.0.0"
 micronaut-test = "4.6.2"
 groovy = "4.0.24"
 spock = "2.3-groovy-4.0"
+avro = "1.12.0"
+micronaut-logging = "1.6.1"
 
 # Managed versions appear in the BOM
 # managed-somelib = "1.0"
@@ -31,6 +33,8 @@ spock = "2.3-groovy-4.0"
 # Core
 micronaut-core = { module = 'io.micronaut:micronaut-core-bom', version.ref = 'micronaut' }
 micronaut-serde = { module = 'io.micronaut.serde:micronaut-serde-bom', version.ref = 'micronaut-serde' }
+avro = { module = 'org.apache.avro:avro', version.ref = 'avro' }
+micronaut-logging = { module = 'io.micronaut.logging:micronaut-logging-bom', version.ref = 'micronaut-logging'}
 
 #
 # Managed dependencies appear in the BOM

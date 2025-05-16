@@ -1,0 +1,39 @@
+{
+  "type": "record",
+  "name": "Salamander",
+  "namespace": "dev.me.models",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string"
+    },
+    {
+      "name": "words",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": "string",
+          "java-class": "java.util.List"
+        },
+        "java-class": "java.util.List"
+      }
+    },
+    {
+      "name": "age",
+      "type": "int"
+    },
+    {
+      "name": "strings",
+      "type": {
+        "type": "array",
+        "items": "string",
+        "java-class": "java.util.List"
+      }
+    },
+    {
+      "name": "salary",
+      "type": "float"
+    }
+  ]
+}
