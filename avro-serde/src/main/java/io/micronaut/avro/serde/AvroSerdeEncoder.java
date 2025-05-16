@@ -228,20 +228,11 @@ public final class AvroSerdeEncoder implements Encoder {
     }
 
     private boolean isValidType(Object schemaType, Type type) {
-        return switch ((String) schemaType) {
-            case "null" -> type == Type.NULL;
-            case "boolean" -> type == Type.BOOLEAN;
-            case "int" -> type == Type.INT;
-            case "long" -> type == Type.LONG;
-            case "float" -> type == Type.FLOAT;
-            case "double" -> type == Type.DOUBLE;
-            case "bytes" -> type == Type.BYTES;
-            case "string" -> type == Type.STRING;
-            case "array" -> type == Type.ARRAY;
-            case "map" -> type == Type.MAP;
-            default ->
-                throw new UnsupportedOperationException("Unsupported schema type: " + schemaType);
-        };
+        try {
+            return Type.fromString((String) schemaType) == type;
+        } catch (IllegalArgumentException e) {
+            throw new UnsupportedOperationException("Unsupported schema type: " + schemaType, e);
+        }
     }
 
     private void validateType(Object schemaType, EncodingRunnable fieldEncoder) throws IOException {
