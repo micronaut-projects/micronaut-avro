@@ -25,12 +25,13 @@ public class AvroSerdeDecoderTest {
 
         try (ApplicationContext ctx = ApplicationContext.run();
              AvroSerdeEncoder avroEncoder = new AvroSerdeEncoder(encoder, ctx.getEnvironment())){
-            Encoder objEncoder = avroEncoder.encodeObject(Argument.of(Person.class));
-            objEncoder.encodeKey("name");
-            objEncoder.encodeString("ali");
-            objEncoder.encodeKey("age");
-            objEncoder.encodeInt(23);
-            objEncoder.finishStructure();
+            try(Encoder objEncoder = avroEncoder.encodeObject(Argument.of(Person.class))) {
+                objEncoder.encodeKey("name");
+                objEncoder.encodeString("ali");
+                objEncoder.encodeKey("age");
+                objEncoder.encodeInt(23);
+                objEncoder.finishStructure();
+            }
         }
 
         byte[] encodedBytes = outputStream.toByteArray();
