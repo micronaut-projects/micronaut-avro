@@ -39,18 +39,20 @@ public class AvroSerdeDecoderTest {
         org.apache.avro.io.Decoder decoder = DecoderFactory.get().binaryDecoder(in, null);
 
         try (ApplicationContext ctx = ApplicationContext.run();
-             AvroSerdeDecoder avroDecoder = new AvroSerdeDecoder(decoder, ctx.getEnvironment())){
-            Decoder objDecoder = avroDecoder.decodeObject(Argument.of(Person.class));
+             AvroSerdeDecoder avroDecoder = new AvroSerdeDecoder(decoder, ctx.getEnvironment())) {
+            try (Decoder objDecoder = avroDecoder.decodeObject(Argument.of(Person.class))) {
 
-            objDecoder.decodeKey();
-            String age = objDecoder.decodeString();
-            objDecoder.decodeKey();
-            String name = objDecoder.decodeString();
+                String keyAge = objDecoder.decodeKey();
+                String age = objDecoder.decodeString();
+                String keyName = objDecoder.decodeKey();
+                String name = objDecoder.decodeString();
 
-            Assertions.assertEquals("ali", name);
-            Assertions.assertEquals("23", age);
+                Assertions.assertEquals("name", keyName);
+                Assertions.assertEquals("ali", name);
+                Assertions.assertEquals("age", keyAge);
+                Assertions.assertEquals("23", age);
+            }
         }
-
 
     }
 }
