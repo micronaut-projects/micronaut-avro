@@ -107,7 +107,7 @@ public class AvroSerdeDecoder implements Decoder {
                 return String.valueOf(delegate.readBoolean());
             }
             case RECORD, ARRAY, MAP, ENUM -> {
-                throw new IllegalStateException("");
+                throw new IllegalStateException("Cannot decode complex Avro type '" + field.getType() + "' to String.");
             }
             default -> {
                 throw new IllegalStateException("Unsupported Type: " + field.getType());
