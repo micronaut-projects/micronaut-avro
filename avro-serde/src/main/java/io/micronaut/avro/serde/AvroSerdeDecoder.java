@@ -75,7 +75,7 @@ public class AvroSerdeDecoder implements Decoder {
                 return new AvroSerdeDecoder(delegate, resourceLoader, avroSchema);
             }
         }
-        return new AvroSerdeDecoder(delegate, resourceLoader, null);
+        throw new IllegalStateException("No schema found for " + targetClass);
     }
 
     @Override
