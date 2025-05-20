@@ -44,14 +44,14 @@ public class AvroSerdeDecoderTest {
             try (Decoder objDecoder = avroDecoder.decodeObject(Argument.of(Person.class))) {
 
                 String keyAge = objDecoder.decodeKey();
-                String age = objDecoder.decodeString();
+                int age = objDecoder.decodeInt();
                 String keyName = objDecoder.decodeKey();
                 String name = objDecoder.decodeString();
 
                 Assertions.assertEquals("name", keyName);
                 Assertions.assertEquals("ali", name);
                 Assertions.assertEquals("age", keyAge);
-                Assertions.assertEquals("23", age);
+                Assertions.assertEquals(23, age);
             }
         }
 

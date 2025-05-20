@@ -7,16 +7,13 @@ public class Person {
     private String name;
     private int age;
 
-    // Required: No-arg constructor
     public Person() {}
 
-    // Optional: Constructor with fields (helpful for testing)
     public Person(String name, int age) {
         this.name = name;
         this.age = age;
     }
 
-    // Getters and Setters (required for ReflectData to work)
     public String getName() {
         return name;
     }
@@ -36,6 +33,6 @@ public class Person {
     // Optional: toString() for better print output
     @Override
     public String toString() {
-        return "Salamander{name='" + name + "', age=" + age + "}";
+        return "Person{name='" + name + "', age=" + age + "}";
     }
 }
