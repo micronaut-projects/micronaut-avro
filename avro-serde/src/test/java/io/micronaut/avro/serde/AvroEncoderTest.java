@@ -109,14 +109,14 @@ public class AvroEncoderTest {
               AvroSerdeEncoder encoder = new AvroSerdeEncoder(binaryEncoder, ctx.getEnvironment())){
             Argument<? extends Point> type = Argument.of(Point.class);
             int[] coords = {2, 3, 5, 1, 5, 9};
-            Encoder objEncoder = encoder.encodeObject(type);
+            try(Encoder objEncoder = encoder.encodeObject(type)) {
                 objEncoder.encodeKey("points");
                 try (Encoder array = objEncoder.encodeArray(Argument.of(Integer.class))) {
                     for (int cord : coords) {
                         array.encodeInt(cord);
                     }
                 }
-            objEncoder.finishStructure();
+            }
         }
         // Inspect raw bytes
         byte[] actualResult = outputStream.toByteArray();
@@ -204,36 +204,35 @@ public class AvroEncoderTest {
         try (ApplicationContext ctx = ApplicationContext.run();
               AvroSerdeEncoder encoder = new AvroSerdeEncoder(binaryEncoder, ctx.getEnvironment())){
             Argument<Salamander> type = Argument.of(Salamander.class);
-            Encoder objectEncoder = encoder.encodeObject(type);
+            try(Encoder objectEncoder = encoder.encodeObject(type)) {
 
-            // Encode properties
-            objectEncoder.encodeKey("name");
-            objectEncoder.encodeString(salamanderInstance.name);
+                // Encode properties
+                objectEncoder.encodeKey("name");
+                objectEncoder.encodeString(salamanderInstance.name);
 
-            objectEncoder.encodeKey("words");
-            Encoder outerArrayEncoder = objectEncoder.encodeArray(Argument.of(List.class));
-            for (List<String> innerList : salamanderInstance.words) {
+                objectEncoder.encodeKey("words");
+                try (Encoder outerArrayEncoder = objectEncoder.encodeArray(Argument.of(List.class))) {
+                    for (List<String> innerList : salamanderInstance.words) {
 
-                Encoder innerArrayEncoder = outerArrayEncoder.encodeArray(Argument.of(String.class));
-                for (String word : innerList) {
-                    innerArrayEncoder.encodeString(word);
+                        try (Encoder innerArrayEncoder = outerArrayEncoder.encodeArray(Argument.of(String.class))) {
+                            for (String word : innerList) {
+                                innerArrayEncoder.encodeString(word);
+                            }
+                        }
+                    }
                 }
-                innerArrayEncoder.finishStructure();
+                objectEncoder.encodeKey("age");
+                objectEncoder.encodeInt(salamanderInstance.age);
+
+                objectEncoder.encodeKey("strings");
+                Encoder setEncoder = objectEncoder.encodeArray(Argument.of(String.class));
+                for (String item : salamanderInstance.strings) {
+                    setEncoder.encodeString(item);
+                }
+
+                objectEncoder.encodeKey("salary");
+                objectEncoder.encodeFloat(salamanderInstance.salary);
             }
-            outerArrayEncoder.finishStructure();
-            objectEncoder.encodeKey("age");
-            objectEncoder.encodeInt(salamanderInstance.age);
-
-            objectEncoder.encodeKey("strings");
-            Encoder setEncoder = objectEncoder.encodeArray(Argument.of(String.class));
-            for (String item : salamanderInstance.strings) {
-                setEncoder.encodeString(item);
-            }
-
-            objectEncoder.encodeKey("salary");
-            objectEncoder.encodeFloat(salamanderInstance.salary);
-
-            objectEncoder.finishStructure();
         }
 
         // Validate the result
@@ -253,10 +252,10 @@ public class AvroEncoderTest {
             encoder.encodeBigDecimal(bd);
             encoder.encodeKey("float");
             encoder.encodeFloat(12.1f);
-            encoder.finishStructure();
-            byte[] avroData = outputStream.toByteArray();
-            assertEquals("[14, 49, 50, 46, 49, 50, 51, 50, -102, -103, 65, 65]",Arrays.toString(avroData));
         }
+        byte[] avroData = outputStream.toByteArray();
+        assertEquals("[14, 49, 50, 46, 49, 50, 51, 50, -102, -103, 65, 65]",Arrays.toString(avroData));
+
     }
 
     @Test
@@ -270,17 +269,15 @@ public class AvroEncoderTest {
             String[] strings = {"foo", "bar", "baz"};
 
             Argument<? extends String> argument = Argument.of(String.class);
-            Encoder objEncoder = encoder.encodeObject(argument);
-            objEncoder.encodeKey("strings");
-            try (
-                Encoder arrayEncoder = objEncoder.encodeArray(argument)){
-                for (String string : strings) {
-                    arrayEncoder.encodeString(string);
+            try(Encoder objEncoder = encoder.encodeObject(argument)) {
+                objEncoder.encodeKey("strings");
+                try (Encoder arrayEncoder = objEncoder.encodeArray(argument)) {
+                    for (String string : strings) {
+                        arrayEncoder.encodeString(string);
+                    }
                 }
-                objEncoder.finishStructure();
             }
         }
-
         byte[] avroData = outputStream.toByteArray();
         String actualResult = Arrays.toString(avroData);
         String expectedResult = "[6, 6, 102, 111, 111, 6, 98, 97, 114, 6, 98, 97, 122, 0]";
@@ -312,29 +309,28 @@ public class AvroEncoderTest {
         try (ApplicationContext ctx = ApplicationContext.run();
               AvroSerdeEncoder encoder = new AvroSerdeEncoder(binaryEncoder, ctx.getEnvironment())){
             Argument<Salamander> type = Argument.of(Salamander.class);
-            Encoder objectEncoder = encoder.encodeObject(type);
+            try(Encoder objectEncoder = encoder.encodeObject(type)) {
 
-            // Encode properties
-            objectEncoder.encodeKey("name");
-            objectEncoder.encodeString(salamanderInstance.name);
+                // Encode properties
+                objectEncoder.encodeKey("name");
+                objectEncoder.encodeString(salamanderInstance.name);
 
-            objectEncoder.encodeKey("words");
-            Encoder outerArrayEncoder = objectEncoder.encodeArray(Argument.of(String.class));
-            for (List<List<String>> innerList : salamanderInstance.words) {
+                objectEncoder.encodeKey("words");
+                try (Encoder outerArrayEncoder = objectEncoder.encodeArray(Argument.of(String[][][].class))){
+                    for (List<List<String>> innerList : salamanderInstance.words) {
 
-                Encoder innerArrayEncoder = outerArrayEncoder.encodeArray(Argument.of(String.class));
-                for (List<String> words : innerList) {
-                    Encoder innerEncoder = innerArrayEncoder.encodeArray(Argument.of(String.class));
-                    for (String s : words) {
-                        innerEncoder.encodeString(s);
+                        try (Encoder innerArrayEncoder = outerArrayEncoder.encodeArray(Argument.of(String[][].class))) {
+                            for (List<String> words : innerList) {
+                                try (Encoder innerEncoder = innerArrayEncoder.encodeArray(Argument.of(String.class))) {
+                                    for (String s : words) {
+                                        innerEncoder.encodeString(s);
+                                    }
+                                }
+                            }
+                        }
                     }
-                    innerEncoder.finishStructure();
                 }
-                innerArrayEncoder.finishStructure();
             }
-            outerArrayEncoder.finishStructure();
-
-            objectEncoder.finishStructure();
         }
         // Validate the result
         byte[] encodedBytes = out.toByteArray();

@@ -123,7 +123,7 @@ public final class AvroSerdeEncoder implements Encoder {
                 if (field.getType() instanceof String) {
                     validateType(field.getType(), fieldEncoder);
                     fieldEncoder.run();
-                } else if (field.getType() instanceof Map nestedSchema) {
+                } else if (field.getType() instanceof Map<?, ?> nestedSchema) {
                     validateType(nestedSchema.get("type"), fieldEncoder);
                     fieldEncoder.run();
                 } else {
