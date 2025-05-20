@@ -439,7 +439,7 @@ public final class AvroSchema {
         }
 
         @JsonCreator
-        static LogicalType fromString(String value) {
+        public static LogicalType fromString(String value) {
             return LogicalType.valueOf(value.toUpperCase(Locale.ENGLISH));
         }
     }
