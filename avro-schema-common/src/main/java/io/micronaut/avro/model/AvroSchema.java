@@ -424,6 +424,7 @@ public final class AvroSchema {
     /**
      * Logical types that can be applied to Avro schemas.
      */
+    @Serdeable
     public enum LogicalType {
         DECIMAL,
         DATE,
