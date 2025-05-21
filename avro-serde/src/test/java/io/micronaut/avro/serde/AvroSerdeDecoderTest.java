@@ -12,12 +12,15 @@ import org.junit.jupiter.api.Test;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 
 public class AvroSerdeDecoderTest {
 
     @Test
-    void testEncodeStringValidInput() throws IOException {
+    void decodeObjectAfterSerialization() throws IOException {
 
         /* Serialize data */
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -30,7 +33,6 @@ public class AvroSerdeDecoderTest {
                 objEncoder.encodeString("ali");
                 objEncoder.encodeKey("age");
                 objEncoder.encodeInt(23);
-                objEncoder.finishStructure();
             }
         }
 
@@ -55,5 +57,136 @@ public class AvroSerdeDecoderTest {
             }
         }
 
+    }
+    @Test
+    void decodeObjectWithArrayAfterSerialization() throws IOException {
+
+        /* Serialize data */
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        org.apache.avro.io.Encoder encoder = EncoderFactory.get().binaryEncoder(outputStream, null);
+        Salamander salamanderInstance = new Salamander(23, "ali", List.of("foo","bar"));
+
+        try (ApplicationContext ctx = ApplicationContext.run();
+             AvroSerdeEncoder avroEncoder = new AvroSerdeEncoder(encoder, ctx.getEnvironment())){
+            try(Encoder objEncoder = avroEncoder.encodeObject(Argument.of(Salamander.class))) {
+                objEncoder.encodeKey("name");
+                objEncoder.encodeString(salamanderInstance.name());
+                objEncoder.encodeKey("age");
+                objEncoder.encodeInt(salamanderInstance.age());
+                objEncoder.encodeKey("strings");
+                try(Encoder objArrayEncoder = objEncoder.encodeArray(Argument.of(String.class))) {
+                    for (String string : salamanderInstance.strings()) {
+                        objArrayEncoder.encodeString(string);
+                    }
+                }
+            }
+        }
+
+        byte[] encodedBytes = outputStream.toByteArray();
+        System.out.println(Arrays.toString(encodedBytes));
+        Assertions.assertEquals("[46, 6, 97, 108, 105, 4, 6, 102, 111, 111, 6, 98, 97, 114, 0]", Arrays.toString(encodedBytes));
+
+        /* Deserialize data */
+        ByteArrayInputStream in = new ByteArrayInputStream(encodedBytes);
+        org.apache.avro.io.Decoder decoder = DecoderFactory.get().binaryDecoder(in, null);
+
+        try (ApplicationContext ctx = ApplicationContext.run();
+             AvroSerdeDecoder avroDecoder = new AvroSerdeDecoder(decoder, ctx.getEnvironment())) {
+            try (Decoder objDecoder = avroDecoder.decodeObject(Argument.of(Salamander.class))) {
+
+                String keyAge = objDecoder.decodeKey();
+                int age = objDecoder.decodeInt();
+                String keyName = objDecoder.decodeKey();
+                String name = objDecoder.decodeString();
+                String keyStrings = objDecoder.decodeKey();
+                List<String> strings = new ArrayList<>();
+                try(Decoder arrayDecoder = objDecoder.decodeArray(Argument.of(String.class))){
+                    while (arrayDecoder.hasNextArrayValue()) {
+                        strings.add(arrayDecoder.decodeString());
+                    }
+                }
+
+                Assertions.assertEquals("age", keyAge);
+                Assertions.assertEquals(23, age);
+                Assertions.assertEquals("name", keyName);
+                Assertions.assertEquals("ali", name);
+                Assertions.assertEquals("strings", keyStrings);
+                Assertions.assertArrayEquals(new List[]{strings}, new List[]{salamanderInstance.strings()});
+            }
+        }
+
+    }
+    @Test
+    void decodeObjectWithNestedArrays() throws IOException {
+        /* Serialize data */
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        org.apache.avro.io.Encoder encoder = EncoderFactory.get().binaryEncoder(outputStream, null);
+
+        // Create nested lists
+        List<List<String>> nestedLists = new ArrayList<>();
+        nestedLists.add(List.of("one", "two"));
+        nestedLists.add(List.of("three", "four", "five"));
+
+        NestedArrayModel model = new NestedArrayModel("test-model", nestedLists);
+
+        try (ApplicationContext ctx = ApplicationContext.run();
+             AvroSerdeEncoder avroEncoder = new AvroSerdeEncoder(encoder, ctx.getEnvironment())) {
+            try (Encoder objEncoder = avroEncoder.encodeObject(Argument.of(NestedArrayModel.class))) {
+                objEncoder.encodeKey("name");
+                objEncoder.encodeString(model.name());
+                objEncoder.encodeKey("strings");
+
+                // Encode outer array
+                try (Encoder outerArrayEncoder = objEncoder.encodeArray(Argument.of(List.class))) {
+                    for (List<String> innerList : model.stringLists()) {
+                        // Encode each inner array
+                        try (Encoder innerArrayEncoder = outerArrayEncoder.encodeArray(Argument.of(String.class))) {
+                            for (String item : innerList) {
+                                innerArrayEncoder.encodeString(item);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        byte[] encodedBytes = outputStream.toByteArray();
+        System.out.println("Encoded bytes: " + Arrays.toString(encodedBytes));
+
+        /* Deserialize data */
+        ByteArrayInputStream in = new ByteArrayInputStream(encodedBytes);
+        org.apache.avro.io.Decoder decoder = DecoderFactory.get().binaryDecoder(in, null);
+
+        try (ApplicationContext ctx = ApplicationContext.run();
+             AvroSerdeDecoder avroDecoder = new AvroSerdeDecoder(decoder, ctx.getEnvironment())) {
+            try (Decoder objDecoder = avroDecoder.decodeObject(Argument.of(NestedArrayModel.class))) {
+                String keyName = objDecoder.decodeKey();
+                String name = objDecoder.decodeString();
+                String keyStringLists = objDecoder.decodeKey();
+
+                List<List<String>> decodedLists = new ArrayList<>();
+                try (Decoder outerArrayDecoder = objDecoder.decodeArray(Argument.of(List.class))) {
+                    while (outerArrayDecoder.hasNextArrayValue()) {
+                        List<String> innerList = new ArrayList<>();
+                        try (Decoder innerArrayDecoder = outerArrayDecoder.decodeArray(Argument.of(String.class))) {
+                            while (innerArrayDecoder.hasNextArrayValue()) {
+                                innerList.add(innerArrayDecoder.decodeString());
+                            }
+                        }
+                        decodedLists.add(innerList);
+                    }
+                }
+
+                Assertions.assertEquals("name", keyName);
+                Assertions.assertEquals("test-model", name);
+                Assertions.assertEquals("strings", keyStringLists);
+
+                // Verify the nested lists
+                Assertions.assertEquals(2, decodedLists.size());
+                Assertions.assertEquals(List.of("one", "two"), decodedLists.get(0));
+                Assertions.assertEquals(List.of("three", "four", "five"), decodedLists.get(1));
+                Assertions.assertEquals(model.stringLists(), decodedLists);
+            }
+        }
     }
 }
