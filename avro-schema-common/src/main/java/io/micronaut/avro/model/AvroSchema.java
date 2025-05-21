@@ -378,6 +378,7 @@ public final class AvroSchema {
     /**
      * The type of schema representing Avro's primitive and complex types.
      */
+    @Serdeable
     public enum Type {
         /** A Null Value. */
         NULL,
