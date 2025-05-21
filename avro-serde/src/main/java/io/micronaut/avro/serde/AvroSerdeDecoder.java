@@ -1,3 +1,18 @@
+/*
+ * Copyright 2017-2025 original authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.micronaut.avro.serde;
 
 import io.micronaut.avro.AvroSchemaSource;
@@ -30,8 +45,8 @@ import java.util.Map;
  */
 public class AvroSerdeDecoder implements Decoder {
 
-    private final AvroSchema avroSchema;
     int fieldIndex = -1;
+    private final AvroSchema avroSchema;
     private final org.apache.avro.io.Decoder delegate;
     private final ResourceLoader resourceLoader;
 
@@ -46,17 +61,6 @@ public class AvroSerdeDecoder implements Decoder {
         this.delegate = delegate;
         this.avroSchema = schema;
         this.resourceLoader = resourceLoader;
-    }
-
-    // Inner class to track array context state
-    private static class ArrayContext {
-        private long itemsRemaining;
-        private final Object itemType; // Type of the items in this array
-
-        public ArrayContext(long itemsRemaining, Object itemType) {
-            this.itemsRemaining = itemsRemaining;
-            this.itemType = itemType;
-        }
     }
 
     @Override
@@ -319,14 +323,12 @@ public class AvroSerdeDecoder implements Decoder {
 
     @Override
     public @NonNull BigInteger decodeBigInteger() throws IOException {
-        // Implement based on your requirements
         throw new UnsupportedOperationException("BigInteger decoding not implemented yet");
     }
 
     @Override
     public @NonNull BigDecimal decodeBigDecimal() throws IOException {
         if (!arrayContextStack.isEmpty()) {
-            // Handle array items of BigDecimal type if needed
             throw new UnsupportedOperationException("BigDecimal array items not supported");
         }
 
@@ -409,9 +411,20 @@ public class AvroSerdeDecoder implements Decoder {
 
     }
 
-
     private Object getFieldType(AvroSchema avroSchema, int fieldIndex) {
         Field field = avroSchema.getFields().get(fieldIndex);
         return field.getType();
     }
+
+    // Inner class to track array context state
+    private static class ArrayContext {
+        private long itemsRemaining;
+        private final Object itemType; // Type of the items in this array
+
+        public ArrayContext(long itemsRemaining, Object itemType) {
+            this.itemsRemaining = itemsRemaining;
+            this.itemType = itemType;
+        }
+    }
 }
+
