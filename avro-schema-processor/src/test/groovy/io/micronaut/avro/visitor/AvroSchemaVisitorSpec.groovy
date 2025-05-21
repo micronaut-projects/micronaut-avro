@@ -42,10 +42,10 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
         avroSchema.name == "Salamander"
         avroSchema.namespace == "test.me.models"
         avroSchema.fields.get(0).name == "age"
-        avroSchema.fields.get(0).type == AvroSchema.Type.INT.name()
+        avroSchema.fields.get(0).type == AvroSchema.Type.INT.value()
         avroSchema.fields.get(1).name == "bd"
-        avroSchema.fields.get(1).type.type == AvroSchema.Type.BYTES.name()
-        avroSchema.fields.get(2).type.type == AvroSchema.Type.ENUM.name()
+        avroSchema.fields.get(1).type.type == AvroSchema.Type.BYTES.value()
+        avroSchema.fields.get(2).type.type == AvroSchema.Type.ENUM.value()
         avroSchema.fields.get(2).type.symbols == ["RED", "GREEN", "BLUE"]
         avroSchema.fields.get(2).name == "color"
     }
@@ -77,18 +77,18 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
         avroSchema.doc == "this a salamander record"
         avroSchema.namespace == "test"
         avroSchema.fields.get(0).name == "age"
-        avroSchema.fields.get(0).type == AvroSchema.Type.INT.name()
+        avroSchema.fields.get(0).type == AvroSchema.Type.INT.value()
         avroSchema.fields.get(1).name == "character"
-        avroSchema.fields.get(1).type.type == AvroSchema.Type.INT.name()
-        avroSchema.fields.get(2).type.logicalType == AvroSchema.LogicalType.DATE.name()
+        avroSchema.fields.get(1).type.type == AvroSchema.Type.INT.value()
+        avroSchema.fields.get(2).type.logicalType == AvroSchema.LogicalType.DATE.value()
         avroSchema.fields.get(2).name == "date"
-        avroSchema.fields.get(2).type.type == AvroSchema.Type.INT.name()
-        avroSchema.fields.get(2).type.logicalType == AvroSchema.LogicalType.DATE.name()
+        avroSchema.fields.get(2).type.type == AvroSchema.Type.INT.value()
+        avroSchema.fields.get(2).type.logicalType == AvroSchema.LogicalType.DATE.value()
         avroSchema.fields.get(3).name == "name"
-        avroSchema.fields.get(3).type == AvroSchema.Type.STRING.name()
+        avroSchema.fields.get(3).type == AvroSchema.Type.STRING.value()
         avroSchema.fields.get(4).name == "time"
-        avroSchema.fields.get(4).type.type == AvroSchema.Type.INT.name()
-        avroSchema.fields.get(4).type.logicalType == AvroSchema.LogicalType.TIME_MILLIS.name()
+        avroSchema.fields.get(4).type.type == AvroSchema.Type.INT.value()
+        avroSchema.fields.get(4).type.logicalType == AvroSchema.LogicalType.TIME_MILLIS.value()
     }
 
     void "test record schema with nested lists"() {
@@ -123,12 +123,12 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
         avroSchema.fields.get(0).name == "color"
         avroSchema.fields.get(0).type.symbols == ["RED", "GREEN", "BLUE"]
         avroSchema.fields.get(1).name == "isTrue"
-        avroSchema.fields.get(1).type == AvroSchema.Type.BOOLEAN.name()
+        avroSchema.fields.get(1).type == AvroSchema.Type.BOOLEAN.value()
         avroSchema.fields.get(2).name == "name"
         avroSchema.fields.get(3).name == "nestedList"
-        avroSchema.fields.get(3).type.type == AvroSchema.Type.ARRAY.name()
-        avroSchema.fields.get(3).type.items.type == AvroSchema.Type.ARRAY.name()
-        avroSchema.fields.get(3).type.items.items == AvroSchema.Type.STRING.name()
+        avroSchema.fields.get(3).type.type == AvroSchema.Type.ARRAY.value()
+        avroSchema.fields.get(3).type.items.type == AvroSchema.Type.ARRAY.value()
+        avroSchema.fields.get(3).type.items.items == AvroSchema.Type.STRING.value()
     }
 
     void "test simple class schema generation"() {
@@ -292,24 +292,24 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
         expect:
         avroSchema.name == "Person"
         avroSchema.fields.get(0).name == "character"
-        avroSchema.fields.get(0).type.type == AvroSchema.Type.INT.name()
+        avroSchema.fields.get(0).type.type == AvroSchema.Type.INT.value()
         avroSchema.fields.get(0).type.javaClass == "java.lang.Character"
         avroSchema.fields.get(1).name == "testByte"
-        avroSchema.fields.get(1).type.type == AvroSchema.Type.INT.name()
+        avroSchema.fields.get(1).type.type == AvroSchema.Type.INT.value()
         avroSchema.fields.get(1).type.javaClass == "java.lang.Byte"
         avroSchema.fields.get(2).name == "testChar"
-        avroSchema.fields.get(2).type.type == AvroSchema.Type.INT.name()
+        avroSchema.fields.get(2).type.type == AvroSchema.Type.INT.value()
         avroSchema.fields.get(2).type.javaClass == "java.lang.Character"
         avroSchema.fields.get(3).name == "testDouble"
-        avroSchema.fields.get(3).type == AvroSchema.Type.DOUBLE.name()
+        avroSchema.fields.get(3).type == AvroSchema.Type.DOUBLE.value()
         avroSchema.fields.get(4).name == "testFloat"
-        avroSchema.fields.get(4).type == AvroSchema.Type.FLOAT.name()
+        avroSchema.fields.get(4).type == AvroSchema.Type.FLOAT.value()
         avroSchema.fields.get(5).name == "testInt"
-        avroSchema.fields.get(5).type == AvroSchema.Type.INT.name()
+        avroSchema.fields.get(5).type == AvroSchema.Type.INT.value()
         avroSchema.fields.get(6).name == "testLong"
-        avroSchema.fields.get(6).type == AvroSchema.Type.LONG.name()
+        avroSchema.fields.get(6).type == AvroSchema.Type.LONG.value()
         avroSchema.fields.get(7).name == "testShort"
-        avroSchema.fields.get(7).type.type == AvroSchema.Type.INT.name()
+        avroSchema.fields.get(7).type.type == AvroSchema.Type.INT.value()
         avroSchema.fields.get(7).type.javaClass == "java.lang.Short"
     }
 
@@ -331,11 +331,11 @@ class AvroSchemaVisitorSpec extends AbstractAvroSchemaSpec {
 """)
         expect:
         avroSchema.name == "Person"
-        avroSchema.type == AvroSchema.Type.RECORD.name()
+        avroSchema.type == AvroSchema.Type.RECORD.value()
         avroSchema.fields.get(0).name == "person"
         avroSchema.fields.get(0).type == "Person"
         avroSchema.fields.get(1).name == "personList"
-        avroSchema.fields.get(1).type.type == AvroSchema.Type.ARRAY.name()
+        avroSchema.fields.get(1).type.type == AvroSchema.Type.ARRAY.value()
         avroSchema.fields.get(1).type.javaClass == "java.util.List"
     }
 
