@@ -69,6 +69,9 @@ public class AvroSerdeDecoder implements Decoder {
         if (!arrayContextStack.isEmpty()) {
             ArrayContext parentContext = arrayContextStack.peek();
 
+            // Consume one item from the parent array (this represents the inner array we're about to decode)
+            consumeArrayItem();
+
             // Get the item type from the parent array's item type
             Object itemType = null;
             if (parentContext.itemType instanceof Map<?, ?> map) {
@@ -106,14 +109,13 @@ public class AvroSerdeDecoder implements Decoder {
 
         ArrayContext currentContext = arrayContextStack.peek();
         if (currentContext.itemsRemaining > 0) {
-            currentContext.itemsRemaining--;
             return true;
         }
 
         // Check if there are more blocks in the array
         long nextBlockCount = delegate.arrayNext();
         if (nextBlockCount > 0) {
-            currentContext.itemsRemaining = nextBlockCount - 1; // -1 because we're returning true for the first item
+            currentContext.itemsRemaining = nextBlockCount;
             return true;
         }
 
@@ -149,13 +151,10 @@ public class AvroSerdeDecoder implements Decoder {
         if (!arrayContextStack.isEmpty()) {
             ArrayContext context = arrayContextStack.peek();
             Object itemType = context.itemType;
+            consumeArrayItem();
 
             if (itemType instanceof String string) {
                 return handleString(string);
-            } else if (itemType instanceof Map<?, ?> map) {
-                if ("string".equals(map.get("type"))) {
-                    return delegate.readString();
-                }
             }
 
             throw new IllegalStateException("Cannot decode array item to String: " + itemType);
@@ -171,154 +170,42 @@ public class AvroSerdeDecoder implements Decoder {
 
     @Override
     public boolean decodeBoolean() throws IOException {
-        if (!arrayContextStack.isEmpty()) {
-            ArrayContext context = arrayContextStack.peek();
-            if ("boolean".equals(context.itemType)) {
-                return delegate.readBoolean();
-            }
-            throw new IllegalStateException("Expected boolean array item but got: " + context.itemType);
-        }
-
-        Object type = getFieldType(avroSchema, fieldIndex);
-        if (type instanceof String fieldType) {
-            if (Type.BOOLEAN == Type.fromString(fieldType)) {
-                return delegate.readBoolean();
-            }
-        }
-        throw new IllegalStateException("Expected boolean type but got: " + type);
+        return decodePrimitive("boolean", Type.BOOLEAN, delegate::readBoolean);
     }
 
     @Override
     public byte decodeByte() throws IOException {
-        if (!arrayContextStack.isEmpty()) {
-            ArrayContext context = arrayContextStack.peek();
-            if ("int".equals(context.itemType)) {
-                return (byte) delegate.readInt();
-            }
-            throw new IllegalStateException("Expected int array item for byte but got: " + context.itemType);
-        }
-
-        Object type = getFieldType(avroSchema, fieldIndex);
-        if (type instanceof String fieldType) {
-            if (Type.INT == Type.fromString(fieldType)) {
-                return (byte) delegate.readInt();
-            }
-        }
-        throw new IllegalStateException("Expected int type for byte but got: " + type);
+        return decodePrimitive("int", Type.INT, () -> (byte) delegate.readInt());
     }
 
     @Override
     public short decodeShort() throws IOException {
-        if (!arrayContextStack.isEmpty()) {
-            ArrayContext context = arrayContextStack.peek();
-            if ("int".equals(context.itemType)) {
-                return (short) delegate.readInt();
-            }
-            throw new IllegalStateException("Expected int array item for short but got: " + context.itemType);
-        }
-
-        Object type = getFieldType(avroSchema, fieldIndex);
-        if (type instanceof String fieldType) {
-            if (Type.INT == Type.fromString(fieldType)) {
-                return (short) delegate.readInt();
-            }
-        }
-        throw new IllegalStateException("Expected int type for short but got: " + type);
+        return decodePrimitive("int", Type.INT, () -> (short) delegate.readInt());
     }
 
     @Override
     public char decodeChar() throws IOException {
-        if (!arrayContextStack.isEmpty()) {
-            ArrayContext context = arrayContextStack.peek();
-            if ("int".equals(context.itemType)) {
-                return (char) delegate.readInt();
-            }
-            throw new IllegalStateException("Expected int array item for char but got: " + context.itemType);
-        }
-
-        Object type = getFieldType(avroSchema, fieldIndex);
-        if (type instanceof String fieldType) {
-            if (Type.INT == Type.fromString(fieldType)) {
-                return (char) delegate.readInt();
-            }
-        }
-        throw new IllegalStateException("Expected int type for char but got: " + type);
+        return decodePrimitive("int", Type.INT, () -> (char) delegate.readInt());
     }
 
     @Override
     public int decodeInt() throws IOException {
-        if (!arrayContextStack.isEmpty()) {
-            ArrayContext context = arrayContextStack.peek();
-            if ("int".equals(context.itemType)) {
-                return delegate.readInt();
-            }
-            throw new IllegalStateException("Expected int array item but got: " + context.itemType);
-        }
-
-        Object type = getFieldType(avroSchema, fieldIndex);
-        if (type instanceof String fieldType) {
-            if (Type.INT == Type.fromString(fieldType)) {
-                return delegate.readInt();
-            }
-        }
-        throw new IllegalStateException("Expected int type but got: " + type);
+        return decodePrimitive("int", Type.INT, delegate::readInt);
     }
 
     @Override
     public long decodeLong() throws IOException {
-        if (!arrayContextStack.isEmpty()) {
-            ArrayContext context = arrayContextStack.peek();
-            if ("long".equals(context.itemType)) {
-                return delegate.readLong();
-            }
-            throw new IllegalStateException("Expected long array item but got: " + context.itemType);
-        }
-
-        Object type = getFieldType(avroSchema, fieldIndex);
-        if (type instanceof String fieldType) {
-            if (Type.LONG == Type.fromString(fieldType)) {
-                return delegate.readLong();
-            }
-        }
-        throw new IllegalStateException("Expected long type but got: " + type);
+        return decodePrimitive("int", Type.INT, delegate::readLong);
     }
 
     @Override
     public float decodeFloat() throws IOException {
-        if (!arrayContextStack.isEmpty()) {
-            ArrayContext context = arrayContextStack.peek();
-            if ("float".equals(context.itemType)) {
-                return delegate.readFloat();
-            }
-            throw new IllegalStateException("Expected float array item but got: " + context.itemType);
-        }
-
-        Object type = getFieldType(avroSchema, fieldIndex);
-        if (type instanceof String fieldType) {
-            if (Type.FLOAT == Type.fromString(fieldType)) {
-                return delegate.readFloat();
-            }
-        }
-        throw new IllegalStateException("Expected float type but got: " + type);
+        return decodePrimitive("int", Type.INT, delegate::readFloat);
     }
 
     @Override
     public double decodeDouble() throws IOException {
-        if (!arrayContextStack.isEmpty()) {
-            ArrayContext context = arrayContextStack.peek();
-            if ("double".equals(context.itemType)) {
-                return delegate.readDouble();
-            }
-            throw new IllegalStateException("Expected double array item but got: " + context.itemType);
-        }
-
-        Object type = getFieldType(avroSchema, fieldIndex);
-        if (type instanceof String fieldType) {
-            if (Type.DOUBLE == Type.fromString(fieldType)) {
-                return delegate.readDouble();
-            }
-        }
-        throw new IllegalStateException("Expected double type but got: " + type);
+        return decodePrimitive("double", Type.DOUBLE, delegate::readDouble);
     }
 
     @Override
@@ -329,7 +216,7 @@ public class AvroSerdeDecoder implements Decoder {
     @Override
     public @NonNull BigDecimal decodeBigDecimal() throws IOException {
         if (!arrayContextStack.isEmpty()) {
-            throw new UnsupportedOperationException("BigDecimal array items not supported");
+            throw new UnsupportedOperationException("BigDecimal array items not implemented yet");
         }
 
         Object type = getFieldType(avroSchema, fieldIndex);
@@ -347,6 +234,7 @@ public class AvroSerdeDecoder implements Decoder {
     public boolean decodeNull() throws IOException {
         if (!arrayContextStack.isEmpty()) {
             ArrayContext context = arrayContextStack.peek();
+            consumeArrayItem();
             return "null".equals(context.itemType);
         }
 
@@ -371,12 +259,17 @@ public class AvroSerdeDecoder implements Decoder {
 
     @Override
     public void skipValue() throws IOException {
-
+        if (!arrayContextStack.isEmpty()) {
+            consumeArrayItem();
+        }
     }
 
     @Override
     public void finishStructure(boolean consumeLeftElements) throws IOException {
         if (!arrayContextStack.isEmpty()) {
+            if (consumeLeftElements) {
+                consumeArrayItem();
+            }
             arrayContextStack.pop();
         }
     }
@@ -406,14 +299,47 @@ public class AvroSerdeDecoder implements Decoder {
             case BOOLEAN -> {
                 return String.valueOf(delegate.readBoolean());
             }
+            case ENUM -> {
+                return String.valueOf(delegate.readEnum());
+            }
         }
         throw new IllegalStateException("Unsupported item type: " + itemType);
-
     }
 
     private Object getFieldType(AvroSchema avroSchema, int fieldIndex) {
         Field field = avroSchema.getFields().get(fieldIndex);
         return field.getType();
+    }
+
+    private void consumeArrayItem() {
+        if (!arrayContextStack.isEmpty()) {
+            ArrayContext context = arrayContextStack.peek();
+            context.itemsRemaining--;
+        }
+    }
+
+    private <T> T decodePrimitive(String expectedTypeName, Type avroType, AvroReader<T> reader) throws IOException {
+        if (!arrayContextStack.isEmpty()) {
+            ArrayContext context = arrayContextStack.peek();
+            consumeArrayItem();
+            if (expectedTypeName.equals(context.itemType)) {
+                return reader.read();
+            }
+            throw new IllegalStateException("Expected " + expectedTypeName + " array item but got: " + context.itemType);
+        }
+
+        Object type = getFieldType(avroSchema, fieldIndex);
+        if (type instanceof String fieldType) {
+            if (avroType == Type.fromString(fieldType)) {
+                return reader.read();
+            }
+        }
+        throw new IllegalStateException("Expected " + expectedTypeName + " type but got: " + type);
+    }
+
+    @FunctionalInterface
+    private interface AvroReader<T> {
+        T read() throws IOException;
     }
 
     // Inner class to track array context state
@@ -426,5 +352,5 @@ public class AvroSerdeDecoder implements Decoder {
             this.itemType = itemType;
         }
     }
-}
 
+}

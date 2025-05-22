@@ -83,7 +83,6 @@ public class AvroSerdeDecoderTest {
         }
 
         byte[] encodedBytes = outputStream.toByteArray();
-        System.out.println(Arrays.toString(encodedBytes));
         Assertions.assertEquals("[46, 6, 97, 108, 105, 4, 6, 102, 111, 111, 6, 98, 97, 114, 0]", Arrays.toString(encodedBytes));
 
         /* Deserialize data */
@@ -151,7 +150,6 @@ public class AvroSerdeDecoderTest {
         }
 
         byte[] encodedBytes = outputStream.toByteArray();
-        System.out.println("Encoded bytes: " + Arrays.toString(encodedBytes));
 
         /* Deserialize data */
         ByteArrayInputStream in = new ByteArrayInputStream(encodedBytes);
