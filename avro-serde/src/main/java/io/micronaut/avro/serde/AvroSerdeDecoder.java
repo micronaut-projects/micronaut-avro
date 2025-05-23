@@ -195,12 +195,12 @@ public class AvroSerdeDecoder implements Decoder {
 
     @Override
     public long decodeLong() throws IOException {
-        return decodePrimitive("int", Type.INT, delegate::readLong);
+        return decodePrimitive("long", Type.LONG, delegate::readLong);
     }
 
     @Override
     public float decodeFloat() throws IOException {
-        return decodePrimitive("int", Type.INT, delegate::readFloat);
+        return decodePrimitive("float", Type.FLOAT, delegate::readFloat);
     }
 
     @Override
@@ -268,6 +268,10 @@ public class AvroSerdeDecoder implements Decoder {
     public void finishStructure(boolean consumeLeftElements) throws IOException {
         if (!arrayContextStack.isEmpty()) {
             if (consumeLeftElements) {
+                long nextBlockCount = delegate.arrayNext();
+                if (nextBlockCount > 0) {
+                    throw new IllegalStateException("Not all elements have been consumed yet");
+                }
                 consumeArrayItem();
             }
             arrayContextStack.pop();
@@ -333,6 +337,14 @@ public class AvroSerdeDecoder implements Decoder {
             if (avroType == Type.fromString(fieldType)) {
                 return reader.read();
             }
+        } else if (type instanceof Map<?,?> fieldType) {
+            Object fieldMapType = fieldType.get("type");
+            if (fieldMapType instanceof String stringFieldType) {
+                if (avroType == Type.fromString(stringFieldType)) {
+                    return reader.read();
+                }
+            }
+
         }
         throw new IllegalStateException("Expected " + expectedTypeName + " type but got: " + type);
     }
