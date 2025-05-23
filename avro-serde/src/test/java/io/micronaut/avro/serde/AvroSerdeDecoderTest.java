@@ -1,5 +1,6 @@
 package io.micronaut.avro.serde;
 
+import io.micronaut.avro.AvroSchemaSource;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
@@ -12,6 +13,8 @@ import org.junit.jupiter.api.Test;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -277,5 +280,70 @@ public class AvroSerdeDecoderTest {
             }
         }
 
+    }
+
+    @Test
+    void decodeBigIntegerAndBigDecimalAfterSerialization() throws IOException {
+
+        /* Serialize data */
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        org.apache.avro.io.Encoder encoder = EncoderFactory.get().binaryEncoder(outputStream, null);
+
+        BigInteger bigInteger = new BigInteger("12345678901234567890");
+        BigDecimal bigDecimal = new BigDecimal("12345678901234567890.1234567890");
+
+        try (ApplicationContext ctx = ApplicationContext.run();
+             AvroSerdeEncoder avroEncoder = new AvroSerdeEncoder(encoder, ctx.getEnvironment())){
+            try(Encoder objEncoder = avroEncoder.encodeObject(Argument.of(BigIntegerAndBigDecimalHolder.class))) {
+                objEncoder.encodeKey("bigInt");
+                objEncoder.encodeBigInteger(bigInteger);
+                objEncoder.encodeKey("bigDecimal");
+                objEncoder.encodeBigDecimal(bigDecimal);
+            }
+        }
+
+        byte[] encodedBytes = outputStream.toByteArray();
+        /* Deserialize data */
+        ByteArrayInputStream in = new ByteArrayInputStream(encodedBytes);
+        org.apache.avro.io.Decoder decoder = DecoderFactory.get().binaryDecoder(in, null);
+
+        try (ApplicationContext ctx = ApplicationContext.run();
+             AvroSerdeDecoder avroDecoder = new AvroSerdeDecoder(decoder, ctx.getEnvironment())) {
+            try (Decoder objDecoder = avroDecoder.decodeObject(Argument.of(BigIntegerAndBigDecimalHolder.class))) {
+
+                String keyBigInt = objDecoder.decodeKey();
+                BigInteger decodedBigInteger = objDecoder.decodeBigInteger();
+                String keyBigDecimal = objDecoder.decodeKey();
+                BigDecimal decodedBigDecimal = objDecoder.decodeBigDecimal();
+
+                Assertions.assertEquals("bigInt", keyBigInt);
+                Assertions.assertEquals(bigInteger, decodedBigInteger);
+                Assertions.assertEquals("bigDecimal", keyBigDecimal);
+                Assertions.assertEquals(bigDecimal, decodedBigDecimal);
+            }
+        }
+
+    }
+
+    @AvroSchemaSource("big-integer-and-big-decimal-holder.avsc")
+    static class BigIntegerAndBigDecimalHolder {
+        private BigInteger bigInt;
+        private BigDecimal bigDecimal;
+
+        public BigInteger getBigInt() {
+            return bigInt;
+        }
+
+        public void setBigInt(BigInteger bigInt) {
+            this.bigInt = bigInt;
+        }
+
+        public BigDecimal getBigDecimal() {
+            return bigDecimal;
+        }
+
+        public void setBigDecimal(BigDecimal bigDecimal) {
+            this.bigDecimal = bigDecimal;
+        }
     }
 }
