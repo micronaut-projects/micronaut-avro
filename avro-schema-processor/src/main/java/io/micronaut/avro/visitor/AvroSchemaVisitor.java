@@ -278,7 +278,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
             }
             case "java.math.BigInteger" -> {
                 // BigInteger doesn't have a specific logical type
-                avroSchema.setType(Type.STRING);
+                avroSchema.setType(Type.BYTES);
                 avroSchema.setUnsupported(true);
                 avroSchema.setJavaClass(type.getCanonicalName());
             }

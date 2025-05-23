@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Map;
@@ -210,22 +211,51 @@ public class AvroSerdeDecoder implements Decoder {
 
     @Override
     public @NonNull BigInteger decodeBigInteger() throws IOException {
-        throw new UnsupportedOperationException("BigInteger decoding not implemented yet");
+        ByteBuffer buffer = readBigIntegerBytes();
+        return new BigInteger(buffer.array());
+    }
+
+    private ByteBuffer readBigIntegerBytes() throws IOException {
+        if (!arrayContextStack.isEmpty()) {
+            ArrayContext context = arrayContextStack.peek();
+            Object itemType = context.itemType;
+            consumeArrayItem();
+            return readBigIntegerBytes(itemType);
+        }
+
+        Object type = getFieldType(avroSchema, fieldIndex);
+        return readBigIntegerBytes(type);
+    }
+
+    private ByteBuffer readBigIntegerBytes(Object type) throws IOException {
+        if (type instanceof Map<?, ?> fieldType && "bytes".equals(fieldType.get("type"))) {
+            return delegate.readBytes(null);
+        }
+        throw new IllegalStateException("Expected BigInteger type but got: " + type);
     }
 
     @Override
     public @NonNull BigDecimal decodeBigDecimal() throws IOException {
+        String value = readDecimalValue();
+        return new BigDecimal(value);
+    }
+
+    private String readDecimalValue() throws IOException {
         if (!arrayContextStack.isEmpty()) {
-            throw new UnsupportedOperationException("BigDecimal array items not implemented yet");
+            ArrayContext context = arrayContextStack.peek();
+            Object itemType = context.itemType;
+            consumeArrayItem();
+            return readDecimalValue(itemType);
         }
 
         Object type = getFieldType(avroSchema, fieldIndex);
-        if (type instanceof Map<?, ?> fieldType) {
-            if (Type.STRING == Type.fromString(fieldType.get("type").toString()) &&
-                LogicalType.DECIMAL == LogicalType.fromString(fieldType.get("logicalType").toString())) {
-                String value = delegate.readString();
-                return new BigDecimal(value);
-            }
+        return readDecimalValue(type);
+    }
+
+    private String readDecimalValue(Object type) throws IOException {
+        if (type instanceof Map<?, ?> fieldType && Type.STRING == Type.fromString(fieldType.get("type").toString()) &&
+            LogicalType.DECIMAL == LogicalType.fromString(fieldType.get("logicalType").toString())) {
+            return delegate.readString();
         }
         throw new IllegalStateException("Expected decimal type but got: " + type);
     }
@@ -268,11 +298,10 @@ public class AvroSerdeDecoder implements Decoder {
     public void finishStructure(boolean consumeLeftElements) throws IOException {
         if (!arrayContextStack.isEmpty()) {
             if (consumeLeftElements) {
-                long nextBlockCount = delegate.arrayNext();
-                if (nextBlockCount > 0) {
-                    throw new IllegalStateException("Not all elements have been consumed yet");
+                ArrayContext context = arrayContextStack.peek();
+                while (context.itemsRemaining > 0 || delegate.arrayNext() > 0) {
+                    consumeArrayItem();
                 }
-                consumeArrayItem();
             }
             arrayContextStack.pop();
         }
