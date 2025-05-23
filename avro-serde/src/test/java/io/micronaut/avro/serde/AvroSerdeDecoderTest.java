@@ -187,4 +187,95 @@ public class AvroSerdeDecoderTest {
             }
         }
     }
+
+    @Test
+    void decodeObjectOfPrimitivesAfterSerialization() throws IOException {
+
+        /* Serialize data */
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        org.apache.avro.io.Encoder encoder = EncoderFactory.get().binaryEncoder(outputStream, null);
+
+        try (ApplicationContext ctx = ApplicationContext.run();
+             AvroSerdeEncoder avroEncoder = new AvroSerdeEncoder(encoder, ctx.getEnvironment())){
+            try(Encoder objEncoder = avroEncoder.encodeObject(Argument.of(MyRecord.class))) {
+
+                objEncoder.encodeKey("testInt");
+                objEncoder.encodeInt(5);
+
+                objEncoder.encodeKey("testFloat");
+                objEncoder.encodeFloat(21f);
+
+                objEncoder.encodeKey("testDouble");
+                objEncoder.encodeDouble(5d);
+
+                objEncoder.encodeKey("testLong");
+                objEncoder.encodeLong(5L);
+
+                objEncoder.encodeKey("testByte");
+                objEncoder.encodeByte((byte) 1);
+
+                objEncoder.encodeKey("testShort");
+                objEncoder.encodeShort((short) 5);
+
+                objEncoder.encodeKey("testChar");
+                objEncoder.encodeChar('a');
+
+            }
+        }
+        byte[] encodedBytes = outputStream.toByteArray();
+
+        /* Deserialize data */
+        ByteArrayInputStream in = new ByteArrayInputStream(encodedBytes);
+        org.apache.avro.io.Decoder decoder = DecoderFactory.get().binaryDecoder(in, null);
+
+        try (ApplicationContext ctx = ApplicationContext.run();
+             AvroSerdeDecoder avroDecoder = new AvroSerdeDecoder(decoder, ctx.getEnvironment())) {
+            try (Decoder objDecoder = avroDecoder.decodeObject(Argument.of(MyRecord.class))) {
+
+                String keyByte = objDecoder.decodeKey();
+                byte byteValue = objDecoder.decodeByte();
+
+                String keyChar = objDecoder.decodeKey();
+                char charValue = objDecoder.decodeChar();
+
+                String keyDouble = objDecoder.decodeKey();
+                double doubleValue = objDecoder.decodeDouble();
+
+                String keyFloat = objDecoder.decodeKey();
+                float floatValue = objDecoder.decodeFloat();
+
+                String keyInt = objDecoder.decodeKey();
+                int intValue = objDecoder.decodeInt();
+
+                String keyLong = objDecoder.decodeKey();
+                long longValue = objDecoder.decodeLong();
+
+                String keyShort = objDecoder.decodeKey();
+                short shortValue = objDecoder.decodeShort();
+
+                Assertions.assertEquals("testByte", keyByte);
+                Assertions.assertEquals((byte) 1, byteValue);
+
+                Assertions.assertEquals("testChar", keyChar);
+                Assertions.assertEquals('a', charValue);
+
+                Assertions.assertEquals("testDouble", keyDouble);
+                Assertions.assertEquals(5d, doubleValue);
+
+                Assertions.assertEquals("testFloat", keyFloat);
+                Assertions.assertEquals(21f, floatValue);
+
+                Assertions.assertEquals("testInt", keyInt);
+                Assertions.assertEquals(5, intValue);
+
+                Assertions.assertEquals("testLong", keyLong);
+                Assertions.assertEquals(5L, longValue);
+
+                Assertions.assertEquals("testShort", keyShort);
+                Assertions.assertEquals((short) 5, shortValue);
+
+            }
+        }
+
+    }
 }

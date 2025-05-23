@@ -1,0 +1,44 @@
+{
+  "name": "MyRecord",
+  "namespace": "dev.test.avro",
+  "type": "record",
+  "fields": [
+    {
+      "name": "testByte",
+      "type": {
+        "javaClass": "java.lang.Byte",
+        "type": "int"
+      }
+    },
+    {
+      "name": "testChar",
+      "type": {
+        "javaClass": "java.lang.Character",
+        "type": "int"
+      }
+    },
+    {
+      "name": "testDouble",
+      "type": "double"
+    },
+    {
+      "name": "testFloat",
+      "type": "float"
+    },
+    {
+      "name": "testInt",
+      "type": "int"
+    },
+    {
+      "name": "testLong",
+      "type": "long"
+    },
+    {
+      "name": "testShort",
+      "type": {
+        "javaClass": "java.lang.Short",
+        "type": "int"
+      }
+    }
+  ]
+}
