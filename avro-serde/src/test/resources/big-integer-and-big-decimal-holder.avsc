@@ -1,0 +1,20 @@
+{
+  "type": "record",
+  "name": "BigIntegerAndBigDecimalHolder",
+  "fields": [
+    {
+      "name": "bigInt",
+      "type": {
+        "javaClass": "java.math.BigInteger",
+        "type": "bytes"
+      }
+    },
+    {
+      "name": "bigDecimal",
+      "type": {
+        "type": "string",
+        "logicalType": "decimal"
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "name": "Salamander",
+  "namespace": "test.me.models",
+  "type": "record",
+  "fields": [
+    {
+      "name": "age",
+      "type": "int"
+    },
+    {
+      "name": "name",
+      "type": "string"
+    },
+    {
+      "name": "strings",
+      "type": {
+        "javaClass": "java.util.List",
+        "type": "array",
+        "items": "string"
+      }
+    }
+  ]
+}
