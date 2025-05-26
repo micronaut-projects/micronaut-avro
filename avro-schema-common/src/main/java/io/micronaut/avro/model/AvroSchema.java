@@ -433,7 +433,8 @@ public final class AvroSchema {
         TIMESTAMP_MILLIS,
         TIMESTAMP_MICROS,
         DURATION,
-        UUID;
+        UUID,
+        BIG_DECIMAL;
 
         @JsonValue
         public String value() {

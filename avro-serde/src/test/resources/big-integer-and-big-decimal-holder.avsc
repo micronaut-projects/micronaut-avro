@@ -12,8 +12,8 @@
     {
       "name": "bigDecimal",
       "type": {
-        "type": "string",
-        "logicalType": "decimal"
+        "type": "bytes",
+        "logicalType": "big_Decimal"
       }
     }
   ]

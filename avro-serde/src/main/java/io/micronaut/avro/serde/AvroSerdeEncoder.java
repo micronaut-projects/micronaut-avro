@@ -203,7 +203,7 @@ public final class AvroSerdeEncoder implements Encoder {
 
     @Override
     public void encodeBigDecimal(@NonNull BigDecimal value) throws IOException {
-        buffer(() -> delegate.writeString(value.toPlainString()), Type.STRING);
+        buffer(() -> delegate.writeString(value.toPlainString()), Type.BYTES);
     }
 
     @Override

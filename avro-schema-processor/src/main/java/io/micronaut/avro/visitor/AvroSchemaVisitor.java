@@ -271,7 +271,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
                 if (context.useDecimalLogicalType()) {
                     avroSchema.setType(Type.BYTES);
                     avroSchema.setJavaClass(type.getCanonicalName());
-                    avroSchema.setLogicalType(LogicalType.DECIMAL);
+                    avroSchema.setLogicalType(LogicalType.BIG_DECIMAL);
                 } else {
                     avroSchema.setType(Type.STRING);
                 }
@@ -367,7 +367,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
     private static boolean isLogicalAvroType(LogicalType type) {
         return (type == LogicalType.DATE || type == LogicalType.UUID || type == LogicalType.DURATION ||
             type == LogicalType.DECIMAL || type == LogicalType.TIME_MILLIS || type == LogicalType.TIME_MICROS ||
-            type == LogicalType.TIMESTAMP_MILLIS || type == LogicalType.TIMESTAMP_MICROS);
+            type == LogicalType.TIMESTAMP_MILLIS || type == LogicalType.TIMESTAMP_MICROS) || type == LogicalType.BIG_DECIMAL;
     }
 
     private static boolean isPrimitiveType(ClassElement type) {
