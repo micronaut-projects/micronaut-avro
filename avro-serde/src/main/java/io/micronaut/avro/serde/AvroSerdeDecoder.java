@@ -35,6 +35,7 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.List;
 import java.util.Map;
 
 /***
@@ -292,7 +293,52 @@ public class AvroSerdeDecoder implements Decoder {
     @Override
     public void skipValue() throws IOException {
         if (!arrayContextStack.isEmpty()) {
+            ArrayContext context = arrayContextStack.peek();
+            Object itemType = context.itemType;
             consumeArrayItem();
+            skipValue(itemType);
+        } else {
+            Object type = getFieldType(avroSchema, fieldIndex);
+            skipValue(type);
+        }
+    }
+    private void skipValue(Object type) throws IOException {
+        if (type instanceof String fieldType) {
+            skip(fieldType);
+        } else if (type instanceof Map<?, ?> fieldTypeMap) {
+            String fieldTypeName = (String) fieldTypeMap.get("type");
+            switch (Type.fromString(fieldTypeName)) {
+                case ARRAY -> {
+                    long count;
+                    do {
+                        count = delegate.skipArray();
+                    } while (count > 0);
+                }
+                case MAP -> {
+                    long count;
+                    do {
+                        count = delegate.skipMap();
+                    } while (count > 0);
+                }
+                default -> {
+                    // Handle other types
+                    skip(fieldTypeName);
+                }
+            }
+        }
+    }
+
+    private void skip(String fieldTypeName) throws IOException {
+        switch (Type.fromString(fieldTypeName)) {
+            case NULL -> {}
+            case BOOLEAN -> delegate.readBoolean();
+            case INT -> delegate.readInt();
+            case LONG -> delegate.readLong();
+            case FLOAT -> delegate.readFloat();
+            case DOUBLE -> delegate.readDouble();
+            case STRING, ENUM -> delegate.skipString();
+            case BYTES -> delegate.skipBytes();
+            default -> throw new UnsupportedOperationException("Unsupported type: " + fieldTypeName);
         }
     }
 
