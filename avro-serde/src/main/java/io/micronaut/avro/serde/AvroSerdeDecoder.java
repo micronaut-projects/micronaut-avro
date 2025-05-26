@@ -36,6 +36,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Map;
+import java.util.List;
 
 /***
  * Avro Implementation of {@link Decoder}
@@ -153,20 +154,11 @@ public class AvroSerdeDecoder implements Decoder {
             ArrayContext context = arrayContextStack.peek();
             Object itemType = context.itemType;
             consumeArrayItem();
-
-            if (itemType instanceof String string) {
-                return handleString(string);
-            }
-
-            throw new IllegalStateException("Cannot decode array item to String: " + itemType);
+            return handleString(itemType);
         }
-
         // Regular field decoding
         Object type = getFieldType(avroSchema, fieldIndex);
-        if (type instanceof String fieldType) {
-            return handleString(fieldType);
-        }
-        throw new IllegalStateException("Cannot decode complex Avro type '" + type + "' to String.");
+        return handleString(type);
     }
 
     @Override
@@ -301,8 +293,8 @@ public class AvroSerdeDecoder implements Decoder {
             skipValue(type);
         }
     }
-    private void skipValue(Object type) throws IOException {
 
+    private void skipValue(Object type) throws IOException {
         if (type instanceof String fieldType) {
             skip(fieldType);
         } else if (type instanceof Map<?, ?> fieldTypeMap) {
@@ -357,31 +349,44 @@ public class AvroSerdeDecoder implements Decoder {
         return new IOException(message + (invalidValue != null ? " (invalid value: " + invalidValue + ")" : ""));
     }
 
-    private String handleString(String itemType) throws IOException {
-        switch (Type.fromString(itemType)) {
-            case STRING -> {
-                return delegate.readString();
+    private String handleString(Object itemType) throws IOException {
+        if(itemType instanceof String type) {
+            switch (Type.fromString(type)) {
+                case STRING -> {
+                    return delegate.readString();
+                }
+                case INT -> {
+                    return String.valueOf(delegate.readInt());
+                }
+                case LONG -> {
+                    return String.valueOf(delegate.readLong());
+                }
+                case FLOAT -> {
+                    return String.valueOf(delegate.readFloat());
+                }
+                case DOUBLE -> {
+                    return String.valueOf(delegate.readDouble());
+                }
+                case BOOLEAN -> {
+                    return String.valueOf(delegate.readBoolean());
+                }
+                default -> throw new IllegalStateException("Unsupported type: " + itemType);
             }
-            case INT -> {
-                return String.valueOf(delegate.readInt());
-            }
-            case LONG -> {
-                return String.valueOf(delegate.readLong());
-            }
-            case FLOAT -> {
-                return String.valueOf(delegate.readFloat());
-            }
-            case DOUBLE -> {
-                return String.valueOf(delegate.readDouble());
-            }
-            case BOOLEAN -> {
-                return String.valueOf(delegate.readBoolean());
-            }
-            case ENUM -> {
-                return String.valueOf(delegate.readEnum());
-            }
-            default -> throw new IllegalStateException("Unsupported type: " + itemType);
+        } else if (itemType instanceof Map<?, ?> map) {
+            String fieldTypeName = (String) map.get("type");
+                switch (Type.fromString(fieldTypeName)) {
+                    case ARRAY, MAP -> throw new IllegalStateException("can't decode complex type to string  " + fieldTypeName);
+                    case ENUM -> {
+                        List<String> symbols = avroSchema.getSymbols();
+                        String symbol = delegate.readString();
+                        if (symbols.contains(symbol)){
+                            return symbol;
+                        }
+                    }
+                    default -> throw new IllegalStateException("Unsupported complex type: " + itemType);
+                }
         }
+        throw new IllegalStateException("Unsupported type: " + itemType);
     }
 
     private Object getFieldType(AvroSchema avroSchema, int fieldIndex) {
