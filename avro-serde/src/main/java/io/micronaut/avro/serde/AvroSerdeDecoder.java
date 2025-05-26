@@ -35,7 +35,6 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.List;
 import java.util.Map;
 
 /***
@@ -303,6 +302,7 @@ public class AvroSerdeDecoder implements Decoder {
         }
     }
     private void skipValue(Object type) throws IOException {
+
         if (type instanceof String fieldType) {
             skip(fieldType);
         } else if (type instanceof Map<?, ?> fieldTypeMap) {
@@ -320,17 +320,14 @@ public class AvroSerdeDecoder implements Decoder {
                         count = delegate.skipMap();
                     } while (count > 0);
                 }
-                default -> {
-                    // Handle other types
-                    skip(fieldTypeName);
-                }
+                default -> skip(fieldTypeName);
             }
         }
     }
 
     private void skip(String fieldTypeName) throws IOException {
         switch (Type.fromString(fieldTypeName)) {
-            case NULL -> {}
+            case NULL -> delegate.readNull();
             case BOOLEAN -> delegate.readBoolean();
             case INT -> delegate.readInt();
             case LONG -> delegate.readLong();
@@ -383,8 +380,8 @@ public class AvroSerdeDecoder implements Decoder {
             case ENUM -> {
                 return String.valueOf(delegate.readEnum());
             }
+            default -> throw new IllegalStateException("Unsupported type: " + itemType);
         }
-        throw new IllegalStateException("Unsupported item type: " + itemType);
     }
 
     private Object getFieldType(AvroSchema avroSchema, int fieldIndex) {
@@ -416,7 +413,7 @@ public class AvroSerdeDecoder implements Decoder {
             if (avroType == Type.fromString(fieldType)) {
                 return reader.read();
             }
-        } else if (type instanceof Map<?,?> fieldType) {
+        } else if (type instanceof Map<?, ?> fieldType) {
             Object fieldMapType = fieldType.get("type");
             if (fieldMapType instanceof String stringFieldType) {
                 if (avroType == Type.fromString(stringFieldType)) {
