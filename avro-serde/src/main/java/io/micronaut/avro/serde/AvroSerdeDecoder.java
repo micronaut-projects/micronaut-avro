@@ -212,7 +212,9 @@ public class AvroSerdeDecoder implements Decoder {
     @Override
     public @NonNull BigInteger decodeBigInteger() throws IOException {
         ByteBuffer buffer = readBigIntegerBytes();
-        return new BigInteger(buffer.array());
+        byte[] bytes = new byte[buffer.remaining()];
+        buffer.get(bytes);
+        return new BigInteger(bytes);
     }
 
     private ByteBuffer readBigIntegerBytes() throws IOException {
@@ -348,6 +350,8 @@ public class AvroSerdeDecoder implements Decoder {
         if (!arrayContextStack.isEmpty()) {
             ArrayContext context = arrayContextStack.peek();
             context.itemsRemaining--;
+        } else {
+            throw new IllegalStateException("Not array element");
         }
     }
 
