@@ -232,7 +232,7 @@ public final class AvroSerdeEncoder implements Encoder {
 
     private boolean isValidType(Object schemaType, Type type) {
         try {
-            return Type.fromString((String) schemaType) == type;
+            return Type.fromString((String) schemaType) == type || Type.fromString((String) schemaType) == Type.ENUM && type == Type.STRING;
         } catch (IllegalArgumentException e) {
             throw new UnsupportedOperationException("Unsupported schema type: " + schemaType, e);
         }

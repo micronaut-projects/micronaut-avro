@@ -33,10 +33,7 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.Map;
-import java.util.List;
+import java.util.*;
 
 /***
  * Avro Implementation of {@link Decoder}
@@ -377,10 +374,16 @@ public class AvroSerdeDecoder implements Decoder {
                 switch (Type.fromString(fieldTypeName)) {
                     case ARRAY, MAP -> throw new IllegalStateException("can't decode complex type to string  " + fieldTypeName);
                     case ENUM -> {
-                        List<String> symbols = avroSchema.getSymbols();
+                        var symbols = map.get("symbols");
+                        if (!(symbols instanceof Collection<?>)) {
+                            throw new IllegalStateException("Symbols are missing or not a collection for ENUM type");
+
+                        }
                         String symbol = delegate.readString();
-                        if (symbols.contains(symbol)){
+                        if (((Collection<?>) symbols).contains(symbol)){
                             return symbol;
+                        } else {
+                            throw new IllegalStateException("Symbol '" + symbol + "' is not among the allowed symbols");
                         }
                     }
                     default -> throw new IllegalStateException("Unsupported complex type: " + itemType);
