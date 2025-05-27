@@ -283,7 +283,7 @@ public class AvroSerdeDecoderTest {
     }
 
     @Test
-    void decodeBigIntegerAndBigDecimalAfterSerialization() throws IOException {
+    void decodeBigIntegerAndBigDecimalAfterSerializationAndEnum() throws IOException {
 
         /* Serialize data */
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -299,6 +299,8 @@ public class AvroSerdeDecoderTest {
                 objEncoder.encodeBigInteger(bigInteger);
                 objEncoder.encodeKey("bigDecimal");
                 objEncoder.encodeBigDecimal(bigDecimal);
+                objEncoder.encodeKey("color");
+                objEncoder.encodeString("BLUE");
             }
         }
 
@@ -315,11 +317,15 @@ public class AvroSerdeDecoderTest {
                 BigInteger decodedBigInteger = objDecoder.decodeBigInteger();
                 String keyBigDecimal = objDecoder.decodeKey();
                 BigDecimal decodedBigDecimal = objDecoder.decodeBigDecimal();
+                String keyEnum = objDecoder.decodeKey();
+                String decodedEnum = objDecoder.decodeString();
 
                 Assertions.assertEquals("bigInt", keyBigInt);
                 Assertions.assertEquals(bigInteger, decodedBigInteger);
                 Assertions.assertEquals("bigDecimal", keyBigDecimal);
                 Assertions.assertEquals(bigDecimal, decodedBigDecimal);
+                Assertions.assertEquals("color", keyEnum);
+                Assertions.assertEquals("BLUE", decodedEnum);
             }
         }
 
@@ -408,6 +414,7 @@ public class AvroSerdeDecoderTest {
     static class BigIntegerAndBigDecimalHolder {
         private BigInteger bigInt;
         private BigDecimal bigDecimal;
+        private Color color;
 
         public BigInteger getBigInt() {
             return bigInt;
@@ -423,6 +430,17 @@ public class AvroSerdeDecoderTest {
 
         public void setBigDecimal(BigDecimal bigDecimal) {
             this.bigDecimal = bigDecimal;
+        }
+        public Color getColor() {
+            return color;
+        }
+
+        public void setColor(Color color) {
+            this.color = color;
+        }
+
+        enum Color {
+            GREEN, BLUE, RED, YELLOW
         }
     }
 }

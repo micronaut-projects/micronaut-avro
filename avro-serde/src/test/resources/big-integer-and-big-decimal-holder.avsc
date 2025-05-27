@@ -15,6 +15,19 @@
         "type": "bytes",
         "logicalType": "big_Decimal"
       }
+    },
+    {
+      "name": "color",
+      "type": {
+        "name": "color",
+        "type": "enum",
+        "symbols": [
+          "GREEN",
+          "BLUE",
+          "RED",
+          "YELLOW"
+        ]
+      }
     }
   ]
 }
