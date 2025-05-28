@@ -347,7 +347,7 @@ public class AvroSerdeDecoder implements Decoder {
     }
 
     private String handleString(Object itemType) throws IOException {
-        if(itemType instanceof String type) {
+        if (itemType instanceof String type) {
             switch (Type.fromString(type)) {
                 case STRING -> {
                     return delegate.readString();
@@ -380,7 +380,7 @@ public class AvroSerdeDecoder implements Decoder {
 
                         }
                         String symbol = delegate.readString();
-                        if (((Collection<?>) symbols).contains(symbol)){
+                        if (((Collection<?>) symbols).contains(symbol)) {
                             return symbol;
                         } else {
                             throw new IllegalStateException("Symbol '" + symbol + "' is not among the allowed symbols");
