@@ -153,7 +153,23 @@ public final class AvroSerdeEncoder implements Encoder {
 
     @Override
     public void encodeString(@NonNull String value) throws IOException {
-        buffer(() -> delegate.writeString(value), Type.STRING);
+        if (schema != null) {
+            for (AvroSchema.Field field : schema.getFields()) {
+                if (field.getType() instanceof Map<?,?> nestedSchema) {
+                    if (nestedSchema.get("type") instanceof String str) {
+                        if (str.equals("enum")) {
+                            var symbols = nestedSchema.get("symbols");
+                            int index = ((List<?>) symbols).indexOf(value);
+                            buffer(() -> delegate.writeEnum(index), Type.ENUM);
+                        }
+                    }
+                } else if (field.getType() instanceof String) {
+                    buffer(() -> delegate.writeString(value), Type.STRING);
+                }
+            }
+        } else {
+            buffer(() -> delegate.writeString(value), Type.STRING);
+        }
     }
 
     @Override

@@ -375,16 +375,13 @@ public class AvroSerdeDecoder implements Decoder {
                     case ARRAY, MAP -> throw new IllegalStateException("can't decode complex type to string  " + fieldTypeName);
                     case ENUM -> {
                         var symbols = map.get("symbols");
-                        if (!(symbols instanceof Collection<?>)) {
+                        if (!(symbols instanceof List<?>)) {
                             throw new IllegalStateException("Symbols are missing or not a collection for ENUM type");
 
                         }
-                        String symbol = delegate.readString();
-                        if (((Collection<?>) symbols).contains(symbol)) {
-                            return symbol;
-                        } else {
-                            throw new IllegalStateException("Symbol '" + symbol + "' is not among the allowed symbols");
-                        }
+                        int index = delegate.readEnum();
+                        return (String) ((List<?>) symbols).get(index);
+
                     }
                     default -> throw new IllegalStateException("Unsupported complex type: " + itemType);
                 }
