@@ -309,6 +309,13 @@ public class AvroSerdeDecoder implements Decoder {
                         count = delegate.skipMap();
                     } while (count > 0);
                 }
+                case RECORD -> {
+                    List<Map<String, Object>> fields = (List<Map<String, Object>>) fieldTypeMap.get("fields");
+                    for (Map<String, Object> field : fields) {
+                        Object fieldType = field.get("type");
+                        skipValue(fieldType);
+                    }
+                }
                 default -> skip(fieldTypeName);
             }
         }
