@@ -163,7 +163,7 @@ public final class AvroSerdeEncoder implements Encoder {
                             buffer(() -> delegate.writeEnum(index), Type.ENUM);
                         }
                     }
-                } else if (field.getType() instanceof String) {
+                } else if (field.getType() instanceof String str && str.equals("string")) {
                     buffer(() -> delegate.writeString(value), Type.STRING);
                 }
             }
