@@ -28,7 +28,6 @@ class AvroObjectMapperTest {
 
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
             mapper.writeValue(stream, Argument.of(MyBean.class), object);
-            System.out.println(Arrays.toString(stream.toByteArray()));
             var deserialized = mapper.readValue(new ByteArrayInputStream(stream.toByteArray()), Argument.of(MyBean.class));
 
             Assertions.assertEquals(object, deserialized);
@@ -67,7 +66,6 @@ class AvroObjectMapperTest {
 
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
             mapper.writeValue(stream, Argument.of(ComplexType.class), object);
-            System.out.println(Arrays.toString(stream.toByteArray()));
             var deserialized = mapper.readValue(new ByteArrayInputStream(stream.toByteArray()), Argument.of(ComplexType.class));
 
             Assertions.assertEquals(object, deserialized);
