@@ -34,14 +34,18 @@ public class AvroObjectMapper implements ObjectMapper {
     public <T> T readValue(@NonNull InputStream inputStream, @NonNull Argument<T> type) throws IOException {
         Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
         Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
-        return deserializer.deserialize(new AvroSerdeDecoder(DecoderFactory.get().binaryDecoder(inputStream, null), resourceLoader), decoderContext, type);
+        try(AvroSerdeDecoder avroSerdeDecoder =new AvroSerdeDecoder(DecoderFactory.get().binaryDecoder(inputStream, null), resourceLoader)) {
+            return deserializer.deserialize(avroSerdeDecoder, decoderContext, type);
+        }
     }
 
     @Override
     public <T> void writeValue(@NonNull OutputStream outputStream, @NonNull Argument<T> type, @Nullable T object) throws IOException {
         Serializer.EncoderContext encoderContext = registry.newEncoderContext(null);
         Serializer<? super T> serializer = encoderContext.findSerializer(type).createSpecific(encoderContext, type);
-        serializer.serialize(new AvroSerdeEncoder(EncoderFactory.get().binaryEncoder(outputStream, null), resourceLoader), encoderContext, type, object);
+        try(AvroSerdeEncoder avroSerdeEncoder = new AvroSerdeEncoder(EncoderFactory.get().binaryEncoder(outputStream, null), resourceLoader)){
+            serializer.serialize(avroSerdeEncoder, encoderContext, type, object);
+        }
     }
 
     @Override

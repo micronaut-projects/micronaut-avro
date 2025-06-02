@@ -140,8 +140,9 @@ public final class AvroSerdeEncoder implements Encoder {
         if (parent != null && parent.currentKey != null) {
             parent.objectBuffer.put(parent.currentKey, () -> { });
             parent.currentKey = null;
+        } else if (parent == null) {
+            delegate.flush();
         }
-        delegate.flush();
 
     }
 
