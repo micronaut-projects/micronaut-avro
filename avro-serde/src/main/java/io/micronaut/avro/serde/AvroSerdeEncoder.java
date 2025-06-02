@@ -155,16 +155,25 @@ public final class AvroSerdeEncoder implements Encoder {
     public void encodeString(@NonNull String value) throws IOException {
         if (schema != null) {
             for (AvroSchema.Field field : schema.getFields()) {
-                if (field.getType() instanceof Map<?,?> nestedSchema) {
-                    if (nestedSchema.get("type") instanceof String str) {
-                        if (str.equals("enum")) {
-                            var symbols = nestedSchema.get("symbols");
-                            int index = ((List<?>) symbols).indexOf(value);
-                            buffer(() -> delegate.writeEnum(index), Type.ENUM);
+                if (field.getName().equals(currentKey)) {
+                    if (field.getType() instanceof Map<?,?> nestedSchema) {
+                        if (nestedSchema.get("type") instanceof String str) {
+                            if (str.equals("enum")) {
+                                var symbols = nestedSchema.get("symbols");
+                                int index = ((List<?>) symbols).indexOf(value);
+                                if (index >= 0) {
+                                    buffer(() -> delegate.writeEnum(index), Type.ENUM);
+                                } else {
+                                    throw new IOException("Invalid enumeration value '" + value + "' for field: " + field.getName());
+                                }
+                            } else {
+                                throw new IOException("Invalid type for field: " + field.getName());
+                            }
                         }
+                    } else if (field.getType() instanceof String str && str.equals("string")) {
+                        buffer(() -> delegate.writeString(value), Type.STRING);
                     }
-                } else if (field.getType() instanceof String str && str.equals("string")) {
-                    buffer(() -> delegate.writeString(value), Type.STRING);
+                    return; // Field found, no need to continue iterating
                 }
             }
         } else {
