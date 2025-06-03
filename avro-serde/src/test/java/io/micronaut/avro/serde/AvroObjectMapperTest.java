@@ -188,4 +188,18 @@ class AvroObjectMapperTest {
         List<String> strings,
         float salary
     ){}
+
+    @Test
+    public void testWriteValueAsBytesWithArgument() throws IOException {
+        try (ApplicationContext ctx = ApplicationContext.run()) {
+            AvroObjectMapper mapper = ctx.getBean(AvroObjectMapper.class);
+            Salamander salamander = new Salamander("salamander", List.of(List.of("foo", "bar"), List.of("baz")), 23, List.of("str1", "str2"), 2.1f);
+
+            byte[] bytes = mapper.writeValueAsBytes(Argument.of(Salamander.class), salamander);
+
+            var deserializer = mapper.readValue(bytes, Salamander.class);
+            assertEquals(salamander, deserializer);
+        }
+    }
+
 }
