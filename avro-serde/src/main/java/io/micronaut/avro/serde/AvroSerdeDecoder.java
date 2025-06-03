@@ -255,8 +255,11 @@ public class AvroSerdeDecoder implements Decoder {
     public boolean decodeNull() throws IOException {
         if (!arrayContextStack.isEmpty()) {
             ArrayContext context = arrayContextStack.peek();
-            consumeArrayItem();
-            return "null".equals(context.itemType);
+            if ("null".equals(context.itemType)) {
+                consumeArrayItem(); // Only consume the array item if it's null
+                return true;
+            }
+            return false;
         }
 
         AvroSchema.Field field = avroSchema.getFields().get(fieldIndex);
@@ -310,6 +313,7 @@ public class AvroSerdeDecoder implements Decoder {
                     } while (count > 0);
                 }
                 case RECORD -> {
+                    @SuppressWarnings("unchecked")
                     List<Map<String, Object>> fields = (List<Map<String, Object>>) fieldTypeMap.get("fields");
                     for (Map<String, Object> field : fields) {
                         Object fieldType = field.get("type");
