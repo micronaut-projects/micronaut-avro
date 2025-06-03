@@ -156,7 +156,7 @@ public final class AvroSerdeEncoder implements Encoder {
         if (schema != null) {
             for (AvroSchema.Field field : schema.getFields()) {
                 if (field.getName().equals(currentKey)) {
-                    if (field.getType() instanceof Map<?,?> nestedSchema) {
+                    if (field.getType() instanceof Map<?, ?> nestedSchema) {
                         if (nestedSchema.get("type") instanceof String str) {
                             if (str.equals("enum")) {
                                 var symbols = nestedSchema.get("symbols");
