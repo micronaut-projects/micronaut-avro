@@ -115,12 +115,9 @@ class AvroObjectMapperTest {
             AvroObjectMapper mapper = ctx.getBean(AvroObjectMapper.class);
             final byte[] result = mapper.writeValueAsBytes(s);
             assertEquals("[8, 116, 101, 115, 116]", Arrays.toString(result));
-            final Simple simple = mapper.readValue(result, Argument.of(Simple.class));
-            assertNotNull(simple);
-            assertEquals(
-                "test",
-                simple.value()
-            );
+            final Simple deserialized = mapper.readValue(result, Argument.of(Simple.class));
+            assertNotNull(deserialized);
+            assertEquals(s, deserialized);
         }
 
     }
@@ -138,11 +135,11 @@ class AvroObjectMapperTest {
             Simple object = new Simple("test");
 
             JsonNode jsonNode = mapper.writeValueToTree(object);
-            var deserializer = mapper.readValueFromTree(jsonNode, Simple.class);
+            var deserialized = mapper.readValueFromTree(jsonNode, Simple.class);
             assertNotNull(jsonNode);
             assertTrue(jsonNode.isObject());
             assertEquals("test", jsonNode.get("value").getStringValue());
-            assertEquals(object, deserializer);
+            assertEquals(object, deserialized);
         }
     }
 
@@ -168,7 +165,7 @@ class AvroObjectMapperTest {
         try (ApplicationContext ctx = ApplicationContext.run()) {
             AvroObjectMapper mapper = ctx.getBean(AvroObjectMapper.class);
 
-            Salamander salamander = new Salamander("salamander", List.of(List.of("foo", "bar"), List.of("baz")), 23, List.of("str1", "str2"), 2.1f);
+            Salamander salamander = new Salamander("salamander", List.of(List.of(List.of("foo", "bar"), List.of("baz"))), 23, List.of("str1", "str2"), 2.1f);
 
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
             mapper.writeValue(stream, salamander);
@@ -183,7 +180,7 @@ class AvroObjectMapperTest {
     @Serdeable
     record Salamander (
         String name,
-        List<List<String>> words,
+        List<List<List<String>>> words,
         int age,
         List<String> strings,
         float salary
@@ -193,12 +190,12 @@ class AvroObjectMapperTest {
     public void testWriteValueAsBytesWithArgument() throws IOException {
         try (ApplicationContext ctx = ApplicationContext.run()) {
             AvroObjectMapper mapper = ctx.getBean(AvroObjectMapper.class);
-            Salamander salamander = new Salamander("salamander", List.of(List.of("foo", "bar"), List.of("baz")), 23, List.of("str1", "str2"), 2.1f);
+            Salamander salamander = new Salamander("salamander", List.of(List.of(List.of("foo", "bar"), List.of("baz"))), 23, List.of("str1", "str2"), 2.1f);
 
             byte[] bytes = mapper.writeValueAsBytes(Argument.of(Salamander.class), salamander);
 
-            var deserializer = mapper.readValue(bytes, Salamander.class);
-            assertEquals(salamander, deserializer);
+            var deserialized = mapper.readValue(bytes, Salamander.class);
+            assertEquals(salamander, deserialized);
         }
     }
 
