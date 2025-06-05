@@ -38,7 +38,6 @@ import jakarta.inject.Singleton;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 /**
@@ -97,8 +96,11 @@ public class AvroObjectMapper implements ObjectMapper {
 
     @Override
     public <T> T readValue(byte @NonNull [] byteArray, @NonNull Argument<T> type) throws IOException {
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArray);
-        return readValue(byteArrayInputStream, type);
+        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
+        Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
+        try (AvroSerdeDecoder avroSerdeDecoder = new AvroSerdeDecoder(DecoderFactory.get().binaryDecoder(byteArray, null), resourceLoader)) {
+            return deserializer.deserialize(avroSerdeDecoder, decoderContext, type);
+        }
     }
 
     @Override
@@ -127,6 +129,7 @@ public class AvroObjectMapper implements ObjectMapper {
         serialize(encoder, object, Argument.of(object.getClass()));
     }
 
+    @SuppressWarnings("unchecked")
     private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
         Serializer.EncoderContext context = registry.newEncoderContext(null);
         final Serializer<Object> serializer = context.findSerializer(type).createSpecific(context, type);
