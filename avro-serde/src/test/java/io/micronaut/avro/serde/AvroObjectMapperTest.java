@@ -1,8 +1,11 @@
 package io.micronaut.avro.serde;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.micronaut.avro.Avro;
 import io.micronaut.avro.AvroSchemaSource;
 import io.micronaut.context.ApplicationContext;
+import io.micronaut.core.annotation.Creator;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.annotation.Serdeable;
@@ -16,9 +19,7 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class AvroObjectMapperTest {
     @Test
@@ -201,4 +202,23 @@ class AvroObjectMapperTest {
         }
     }
 
+    @AvroSchemaSource("classpath:META-INF/avro-schemas/AvroObjectMapperTest/Salamanders-schema.avsc")
+    record Salamanders (
+        String name,
+        List<List<List<String>>> words,
+        int age,
+        List<String> strings,
+        @JsonIgnore
+        float salary
+    ){}
+
+    @Test
+    public void shouldNotSerializeSalaryFieldAndThrowIOExceptionMissingField() throws IOException {
+        try (ApplicationContext ctx = ApplicationContext.run()) {
+            AvroObjectMapper mapper = ctx.getBean(AvroObjectMapper.class);
+            Salamanders salamander = new Salamanders("salamander", List.of(List.of(List.of("foo", "bar"), List.of("baz"))), 23, List.of("str1", "str2"), 2.1f);
+
+            assertThrows(IOException.class,()-> mapper.writeValueAsBytes(Argument.of(Salamanders.class), salamander), "Missing field: salary");
+        }
+    }
 }
