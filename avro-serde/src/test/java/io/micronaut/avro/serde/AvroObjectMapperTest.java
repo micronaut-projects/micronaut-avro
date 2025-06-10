@@ -221,4 +221,53 @@ class AvroObjectMapperTest {
             assertThrows(IOException.class,()-> mapper.writeValueAsBytes(Argument.of(Salamanders.class), salamander), "Missing field: salary");
         }
     }
+
+    @Test
+    void testSkipValue() throws IOException {
+        try (ApplicationContext ctx = ApplicationContext.run()) {
+            AvroObjectMapper mapper = ctx.getBean(AvroObjectMapper.class);
+            MixedTypes original = new MixedTypes(
+                "str1",
+                5,
+                true,
+                "str2"
+            );
+
+            byte[] stream = mapper.writeValueAsBytes(original);
+            SkipTypes deserialized = mapper.readValue(
+                stream,
+                Argument.of(SkipTypes.class)
+            );
+
+            assertEquals(original.str1(), deserialized.str1());
+            assertEquals(original.str2(), deserialized.str2());
+        }
+    }
+
+
+    @AvroSchemaSource("classpath:META-INF/avro-schemas/AvroObjectMapperTest/MixedTypes-schema.avsc")
+    @Avro
+    record MixedTypes(
+        String str1,
+        int skipInt,
+        boolean skipBool,
+        String str2
+    ) {}
+
+    @AvroSchemaSource("classpath:META-INF/avro-schemas/AvroObjectMapperTest/SkipTypes-schema.avsc")
+    @Avro
+    record SkipTypes(
+        String str1,
+        @JsonIgnore
+        int skipInt,
+        @JsonIgnore
+        boolean skipBool,
+        String str2
+    ) {
+        @Creator
+        public static SkipTypes create(@JsonProperty("str1") String str1, @JsonProperty("str2") String str2) {
+            return new SkipTypes(str1, 0, false, str2);
+        }
+    }
+
 }
