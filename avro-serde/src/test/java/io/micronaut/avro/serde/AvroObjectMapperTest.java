@@ -270,4 +270,53 @@ class AvroObjectMapperTest {
         }
     }
 
+    @Test
+    void testArraySkipValue() throws IOException {
+        try (ApplicationContext ctx = ApplicationContext.run()) {
+            AvroObjectMapper mapper = ctx.getBean(AvroObjectMapper.class);
+            MixedArrayTypes original = new MixedArrayTypes(
+                2.1f,
+                List.of(1, 2, 3),
+                List.of(true, false, true),
+                'c'
+            );
+
+            byte[] stream = mapper.writeValueAsBytes(original);
+            MixedSkipArrayTypes deserialized = mapper.readValue(
+                stream,
+                Argument.of(MixedSkipArrayTypes.class)
+            );
+            System.out.println(deserialized);
+            assertEquals(original.f, deserialized.f);
+            assertNotEquals(original.listInteger, deserialized.skipInteger);
+            assertNotEquals(original.booleanList, deserialized.skipBoolean);
+            assertEquals(original.c, deserialized.c);
+
+        }
+    }
+
+    @AvroSchemaSource("classpath:META-INF/avro-schemas/AvroObjectMapperTest/MixedArrayTypes-schema.avsc")
+    @Avro
+    record MixedArrayTypes(
+        float f,
+        List<Integer> listInteger,
+        List<Boolean> booleanList,
+        char c
+    ){ }
+
+    @AvroSchemaSource("classpath:META-INF/avro-schemas/AvroObjectMapperTest/MixedSkipArrayTypes-schema.avsc")
+    @Avro
+    record MixedSkipArrayTypes(
+        float f,
+        @JsonIgnore
+        List<Integer> skipInteger,
+        @JsonIgnore
+        List<Boolean> skipBoolean,
+        char c
+    ){
+        @Creator
+        public static MixedSkipArrayTypes create(@JsonProperty("2.1f") float f ,@JsonProperty("c") char c) {
+            return new MixedSkipArrayTypes(2.1f, null, null, 'c');
+        }
+    }
 }
