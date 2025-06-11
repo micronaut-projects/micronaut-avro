@@ -142,7 +142,7 @@ public class AvroSerdeDecoder implements Decoder {
     public @Nullable String decodeKey() throws IOException {
         fieldIndex++;
         if (fieldIndex < 0 || fieldIndex >= avroSchema.getFields().size()) {
-            throw new IOException("Field index out of bounds or invalid: " + fieldIndex);
+            return null;
         }
         return avroSchema.getFields().get(fieldIndex).getName();
     }
@@ -304,16 +304,10 @@ public class AvroSerdeDecoder implements Decoder {
             String fieldTypeName = (String) fieldTypeMap.get("type");
             switch (Type.fromString(fieldTypeName)) {
                 case ARRAY -> {
-                    long count;
-                    do {
-                        count = delegate.skipArray();
-                    } while (count > 0);
+                    delegate.skipArray();
                 }
                 case MAP -> {
-                    long count;
-                    do {
-                        count = delegate.skipMap();
-                    } while (count > 0);
+                    delegate.skipMap();
                 }
                 case RECORD -> {
                     @SuppressWarnings("unchecked")
