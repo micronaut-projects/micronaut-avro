@@ -1,11 +1,9 @@
 package io.micronaut.avro.serde;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.micronaut.avro.Avro;
 import io.micronaut.avro.AvroSchemaSource;
 import io.micronaut.context.ApplicationContext;
-import io.micronaut.core.annotation.Creator;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.annotation.Serdeable;
@@ -22,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -283,10 +280,7 @@ class AvroObjectMapperTest {
                 stream,
                 Argument.of(MixedSkipArrayTypes.class)
             );
-            System.out.println(deserialized);
             assertEquals(original.f, deserialized.f);
-            assertNotEquals(original.listInteger, deserialized.skipInteger);
-            assertNotEquals(original.booleanList, deserialized.skipBoolean);
             assertEquals(original.c, deserialized.c);
 
         }
@@ -301,21 +295,12 @@ class AvroObjectMapperTest {
         char c
     ){ }
 
-    @AvroSchemaSource("classpath:META-INF/avro-schemas/AvroObjectMapperTest/MixedSkipArrayTypes-schema.avsc")
-    @Avro
+    @AvroSchemaSource("classpath:META-INF/avro-schemas/AvroObjectMapperTest/MixedArrayTypes-schema.avsc")
+    @Serdeable
     record MixedSkipArrayTypes(
         float f,
-        @JsonIgnore
-        List<Integer> skipInteger,
-        @JsonIgnore
-        List<Boolean> skipBoolean,
         char c
-    ){
-        @Creator
-        public static MixedSkipArrayTypes create(@JsonProperty("2.1f") float f ,@JsonProperty("c") char c) {
-            return new MixedSkipArrayTypes(2.1f, null, null, 'c');
-        }
-    }
+    ){ }
 
     @Test
     void testStringCaseInt() throws IOException {
