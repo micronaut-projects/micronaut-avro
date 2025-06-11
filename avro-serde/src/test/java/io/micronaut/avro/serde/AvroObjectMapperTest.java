@@ -9,6 +9,7 @@ import io.micronaut.core.annotation.Creator;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.annotation.Serdeable;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -18,8 +19,13 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AvroObjectMapperTest {
     @Test
@@ -384,4 +390,42 @@ class AvroObjectMapperTest {
         List<BigDecimal> arrBigInteger,
         List<Integer> list
     ){}
+
+    @AvroSchemaSource("classpath:META-INF/avro-schemas/AvroObjectMapperTest/WithSchema-schema.avsc")
+    @Avro
+    record WithSchema(
+        Items items
+    ) {
+    }
+
+    @Avro
+    record Items(
+        String foo,
+        int bar
+    ) {
+    }
+
+    @AvroSchemaSource("classpath:META-INF/avro-schemas/AvroObjectMapperTest/WithSchema-schema.avsc")
+    @Serdeable
+    record WithSchemaNode(
+        JsonNode items
+    ) {
+    }
+
+    @Test
+    public void decodeNode() throws IOException {
+        try (ApplicationContext ctx = ApplicationContext.run()) {
+            AvroObjectMapper mapper = ctx.getBean(AvroObjectMapper.class);
+
+            byte[] bytes = mapper.writeValueAsBytes(Argument.of(WithSchema.class), new WithSchema(new Items("fizz", 1)));
+            WithSchemaNode node = mapper.readValue(bytes, WithSchemaNode.class);
+            Assertions.assertEquals(
+                JsonNode.createObjectNode(Map.of(
+                    "foo", JsonNode.createStringNode("fizz"),
+                    "bar", JsonNode.createNumberNode(1)
+                )),
+                node.items
+            );
+        }
+    }
 }
