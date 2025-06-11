@@ -319,4 +319,44 @@ class AvroObjectMapperTest {
             return new MixedSkipArrayTypes(2.1f, null, null, 'c');
         }
     }
+
+    @Test
+    void testStringCaseInt() throws IOException {
+        try (ApplicationContext ctx = ApplicationContext.run()) {
+            AvroObjectMapper mapper = ctx.getBean(AvroObjectMapper.class);
+
+            StringPrimitiveCases original = new StringPrimitiveCases(12, 2.1f, 5d, true, 5L);
+            byte[] stream = mapper.writeValueAsBytes(original);
+
+            StringCases deserialized = mapper.readValue(stream, Argument.of(StringCases.class));
+
+            assertEquals(original.s, Integer.valueOf(deserialized.s));
+            assertEquals(original.f, Float.valueOf(deserialized.f));
+            assertEquals(original.d, Double.valueOf(deserialized.d));
+            assertEquals(original.bool, Boolean.valueOf(deserialized.bool));
+            assertEquals(original.l, Long.valueOf(deserialized.l));
+        }
+    }
+
+    @AvroSchemaSource("classpath:META-INF/avro-schemas/AvroObjectMapperTest/StringPrimitiveCases-schema.avsc")
+    @Serdeable
+    @Avro
+    record StringPrimitiveCases(
+        int s,
+        float f,
+        double d,
+        Boolean bool,
+        long l
+    ){}
+
+    @AvroSchemaSource("classpath:META-INF/avro-schemas/AvroObjectMapperTest/StringPrimitiveCases-schema.avsc")
+    @Serdeable
+    record StringCases(
+        String s,
+        String f,
+        String d,
+        String bool,
+        String l
+    ){}
+    
 }
