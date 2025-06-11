@@ -244,7 +244,6 @@ class AvroObjectMapperTest {
         }
     }
 
-
     @AvroSchemaSource("classpath:META-INF/avro-schemas/AvroObjectMapperTest/MixedTypes-schema.avsc")
     @Avro
     record MixedTypes(
@@ -254,20 +253,12 @@ class AvroObjectMapperTest {
         String str2
     ) {}
 
-    @AvroSchemaSource("classpath:META-INF/avro-schemas/AvroObjectMapperTest/SkipTypes-schema.avsc")
-    @Avro
+    @AvroSchemaSource("classpath:META-INF/avro-schemas/AvroObjectMapperTest/MixedTypes-schema.avsc")
+    @Serdeable
     record SkipTypes(
         String str1,
-        @JsonIgnore
-        int skipInt,
-        @JsonIgnore
-        boolean skipBool,
         String str2
     ) {
-        @Creator
-        public static SkipTypes create(@JsonProperty("str1") String str1, @JsonProperty("str2") String str2) {
-            return new SkipTypes(str1, 0, false, str2);
-        }
     }
 
     @Test
