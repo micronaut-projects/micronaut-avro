@@ -222,7 +222,7 @@ public class AvroSerdeDecoder implements Decoder {
     }
 
     private ByteBuffer readBigIntegerBytes(Object type) throws IOException {
-        if (type instanceof Map<?, ?> fieldType && "bytes".equals(fieldType.get("type"))) {
+        if ("bytes".equals(type) || type instanceof Map<?, ?> map && "bytes".equals(map.get("type"))) {
             return delegate.readBytes(null);
         }
         throw new IllegalStateException("Expected BigInteger type but got: " + type);
@@ -247,7 +247,7 @@ public class AvroSerdeDecoder implements Decoder {
     }
 
     private String readDecimalValue(Object type) throws IOException {
-        if (type instanceof Map<?, ?> fieldType && Type.BYTES == Type.fromString(fieldType.get("type").toString()) &&
+        if (type.equals("bytes") || type instanceof Map<?, ?> fieldType && Type.BYTES == Type.fromString(fieldType.get("type").toString()) &&
             LogicalType.BIG_DECIMAL == LogicalType.fromString(fieldType.get("logicalType").toString())) {
             return delegate.readString();
         }
