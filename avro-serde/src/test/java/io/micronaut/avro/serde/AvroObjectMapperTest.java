@@ -358,5 +358,39 @@ class AvroObjectMapperTest {
         String bool,
         String l
     ){}
-    
+
+    @Test
+    void testArrayBigIntegerAndBigDecimal() throws IOException {
+        try (ApplicationContext ctx = ApplicationContext.run()) {
+            AvroObjectMapper mapper = ctx.getBean(AvroObjectMapper.class);
+
+            BigInteger bigInteger1 = new BigInteger("12345678901234567891");
+            BigInteger bigInteger2 = new BigInteger("12345678901233422221");
+            BigInteger bigInteger3 = new BigInteger("12345678901234567893");
+
+            BigDecimal bigDecimal1 = new BigDecimal("12345678901234567891.1234567891");
+            BigDecimal bigDecimal2 = new BigDecimal("12345678901234567892.1234567892");
+            BigDecimal bigDecimal3 = new BigDecimal("12345678901234567893.1234567893");
+
+            ArrayBigIntegerTypes original = new ArrayBigIntegerTypes(
+                List.of(bigInteger1, bigInteger2, bigInteger3),
+                List.of(bigDecimal1, bigDecimal2, bigDecimal3),
+                List.of(1, 2, 3)
+            );
+
+            byte[] stream = mapper.writeValueAsBytes(original);
+
+            ArrayBigIntegerTypes deserialized = mapper.readValue(stream, Argument.of(ArrayBigIntegerTypes.class));
+
+            assertEquals(original, deserialized);
+        }
+    }
+
+    @Avro
+    @AvroSchemaSource("classpath:META-INF/avro-schemas/AvroObjectMapperTest/ArrayBigIntegerTypes-schema.avsc")
+    record ArrayBigIntegerTypes(
+        List<BigInteger> arrBigDecimal,
+        List<BigDecimal> arrBigInteger,
+        List<Integer> list
+    ){}
 }
