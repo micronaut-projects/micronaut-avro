@@ -331,6 +331,7 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
     }
 
     private static void writeSchema(AvroSchema avroSchema, ClassElement originatingElement, VisitorContext visitorContext, AvroSchemaContext context) {
+        sortAvroSchemaFields(avroSchema);
         String fileName = getFileName(avroSchema);
         String path = context.outputLocation() + SLASH + fileName;
         GeneratedFile specFile = visitorContext.visitMetaInfFile(path, originatingElement).orElse(null);
@@ -340,15 +341,24 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
             visitorContext.info("Generating Avro schema file for type [" + originatingElement.getSimpleName() + "]: " + specFile.getName());
             try (OutputStream outputStream = specFile.openOutputStream()) {
                 ObjectMapper mapper = ObjectMapper.getDefault();
-                if (avroSchema.getFields() != null) {
-                    List<AvroSchema.Field> sortedFields = avroSchema.getFields().stream()
-                        .sorted(Comparator.comparing(AvroSchema.Field::getName))
-                        .toList();
-                    avroSchema.setFields(sortedFields);
-                    mapper.writeValue(outputStream, avroSchema);
-                }
+                mapper.writeValue(outputStream, avroSchema);
+                System.out.println(avroSchema.getFields());
             } catch (IOException e) {
                 throw new RuntimeException("Failed writing Avro schema " + specFile.getName() + " file: " + e, e);
+            }
+        }
+    }
+
+    private static void sortAvroSchemaFields(AvroSchema avroSchema) {
+        if (avroSchema.getType() == Type.RECORD && avroSchema.getFields() != null) {
+            List<AvroSchema.Field> sortedFields = avroSchema.getFields().stream()
+                .sorted(Comparator.comparing(AvroSchema.Field::getName))
+                .toList();
+            avroSchema.setFields(sortedFields);
+            for (AvroSchema.Field field : sortedFields) {
+                if (field.getType() instanceof AvroSchema nestedSchema && nestedSchema.getType() == Type.RECORD) {
+                    sortAvroSchemaFields(nestedSchema);
+                }
             }
         }
     }
