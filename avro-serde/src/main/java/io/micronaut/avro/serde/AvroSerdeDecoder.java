@@ -34,7 +34,10 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Deque;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -276,7 +279,83 @@ public class AvroSerdeDecoder implements Decoder {
 
     @Override
     public @NonNull JsonNode decodeNode() throws IOException {
-        return null;
+        if (!arrayContextStack.isEmpty()) {
+            ArrayContext context = arrayContextStack.peek();
+            Object itemType = context.itemType;
+            consumeArrayItem();
+            return decodeNode(itemType);
+        }
+
+        Object type = getFieldType(avroSchema, fieldIndex);
+        return decodeNode(type);
+    }
+    private JsonNode decodeNode(Object type) throws IOException {
+        if (type instanceof String fieldType) {
+            switch (Type.fromString(fieldType)) {
+                case NULL -> {
+                    return JsonNode.nullNode();
+                }
+                case BOOLEAN -> {
+                    return JsonNode.createBooleanNode(delegate.readBoolean());
+                }
+                case INT -> {
+                    return JsonNode.createNumberNode(delegate.readInt());
+                }
+                case LONG -> {
+                    return JsonNode.createNumberNode(delegate.readLong());
+                }
+                case FLOAT -> {
+                    return JsonNode.createNumberNode(delegate.readFloat());
+                }
+                case DOUBLE -> {
+                    return JsonNode.createNumberNode(delegate.readDouble());
+                }
+                case STRING -> {
+                    return JsonNode.createStringNode(delegate.readString());
+                }
+                case BYTES -> {
+                    ByteBuffer buffer = delegate.readBytes(null);
+                    byte[] bytes = new byte[buffer.remaining()];
+                    buffer.get(bytes);
+                    // In this case, we can't directly create a JsonNode, so we'll create a string representation
+                    return JsonNode.createStringNode(Base64.getEncoder().encodeToString(bytes));
+                }
+                default -> throw new UnsupportedOperationException("Unsupported type: " + fieldType);
+            }
+        } else if (type instanceof Map<?, ?> fieldTypeMap) {
+            String fieldTypeName = (String) fieldTypeMap.get("type");
+            switch (Type.fromString(fieldTypeName)) {
+                case RECORD -> {
+                    Map<String, JsonNode> objectMap = new LinkedHashMap<>();
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> fields = (List<Map<String, Object>>) fieldTypeMap.get("fields");
+                    for (Map<String, Object> field : fields) {
+                        String fieldName = (String) field.get("name");
+                        Object fieldType = field.get("type");
+                        objectMap.put(fieldName, decodeNode(fieldType));
+                    }
+                    return JsonNode.createObjectNode(objectMap);
+                }
+                case ARRAY -> {
+                    List<JsonNode> arrayList = new ArrayList<>();
+                    Object itemType = fieldTypeMap.get("items");
+                    for (long count = delegate.readArrayStart(); count != 0; count = delegate.arrayNext()) {
+                        for (long i = 0; i < count; i++) {
+                            arrayList.add(decodeNode(itemType));
+                        }
+                    }
+                    return JsonNode.createArrayNode(arrayList);
+                }
+                case ENUM -> {
+                    int index = delegate.readEnum();
+                    @SuppressWarnings("unchecked")
+                    List<String> symbols = (List<String>) fieldTypeMap.get("symbols");
+                    return JsonNode.createStringNode(symbols.get(index));
+                }
+                default -> throw new UnsupportedOperationException("Unsupported type: " + fieldTypeName);
+            }
+        }
+        throw new UnsupportedOperationException("Unsupported type: " + type);
     }
 
     @Override
