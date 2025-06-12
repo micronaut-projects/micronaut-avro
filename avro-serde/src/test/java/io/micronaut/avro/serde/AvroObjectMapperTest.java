@@ -386,7 +386,12 @@ class AvroObjectMapperTest {
     @Avro
     record Items(
         String foo,
-        int bar
+        int bar,
+        float baz,
+        Boolean rar,
+        double dee,
+        List<String> tags
+
     ) {
     }
 
@@ -401,15 +406,28 @@ class AvroObjectMapperTest {
     public void decodeNode() throws IOException {
         try (ApplicationContext ctx = ApplicationContext.run()) {
             AvroObjectMapper mapper = ctx.getBean(AvroObjectMapper.class);
+            List<String> tags = List.of("tag1", "tag2", "tag3");
+            WithSchema expected = new WithSchema(new Items("fizz", 1, 2.1f, true, 2d, tags));
 
-            byte[] bytes = mapper.writeValueAsBytes(Argument.of(WithSchema.class), new WithSchema(new Items("fizz", 1)));
-            WithSchemaNode node = mapper.readValue(bytes, WithSchemaNode.class);
+            byte[] bytes = mapper.writeValueAsBytes(Argument.of(WithSchema.class), expected);
+            WithSchemaNode actualNode = mapper.readValue(bytes, WithSchemaNode.class);
+            JsonNode expectedNode = JsonNode.createObjectNode(Map.of(
+                "foo", JsonNode.createStringNode("fizz"),
+                "bar", JsonNode.createNumberNode(1),
+                "baz", JsonNode.createNumberNode(2.1f),
+                "rar", JsonNode.createBooleanNode(true),
+                "dee", JsonNode.createNumberNode(2d),
+                "tags", JsonNode.createArrayNode(List.of(
+                    JsonNode.createStringNode("tag1"),
+                    JsonNode.createStringNode("tag2"),
+                    JsonNode.createStringNode("tag3")
+                ))
+
+            ));
+
             Assertions.assertEquals(
-                JsonNode.createObjectNode(Map.of(
-                    "foo", JsonNode.createStringNode("fizz"),
-                    "bar", JsonNode.createNumberNode(1)
-                )),
-                node.items
+                expectedNode,
+                actualNode.items
             );
         }
     }
