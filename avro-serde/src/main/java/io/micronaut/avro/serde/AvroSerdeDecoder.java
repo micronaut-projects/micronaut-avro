@@ -279,14 +279,68 @@ public class AvroSerdeDecoder implements Decoder {
             ArrayContext context = arrayContextStack.peek();
             Object itemType = context.itemType;
             consumeArrayItem();
-            return decodeArbitraryValue(itemType);
+            return decodeValue(itemType);
         }
 
         Object type = getFieldType(avroSchema, fieldIndex);
-        return decodeArbitraryValue(type);
+        return decodeValue(type);
     }
 
-    private Object decodeArbitraryValue(Object type) throws IOException {
+    @Override
+    public @NonNull JsonNode decodeNode() throws IOException {
+        if (!arrayContextStack.isEmpty()) {
+            ArrayContext context = arrayContextStack.peek();
+            Object itemType = context.itemType;
+            consumeArrayItem();
+            return decodeNode(itemType);
+        }
+
+        Object type = getFieldType(avroSchema, fieldIndex);
+        return decodeNode(type);
+    }
+    private JsonNode decodeNode(Object type) throws IOException {
+        Object value = decodeValue(type);
+        return convertToJsonNode(value);
+    }
+
+    private JsonNode convertToJsonNode(Object value) {
+        if (value == null) {
+            return JsonNode.nullNode();
+        } else if (value instanceof Boolean bool) {
+            return JsonNode.createBooleanNode(bool);
+        } else if (value instanceof Integer integer) {
+            return JsonNode.createNumberNode(integer);
+        } else if (value instanceof Long longValue) {
+            return JsonNode.createNumberNode(longValue);
+        } else if (value instanceof Float floatValue) {
+            return JsonNode.createNumberNode(floatValue);
+        } else if (value instanceof Double doubleValue) {
+            return JsonNode.createNumberNode(doubleValue);
+        } else if (value instanceof String string) {
+            return JsonNode.createStringNode(string);
+        } else if (value instanceof byte[] bytes) {
+            return JsonNode.createStringNode(Base64.getEncoder().encodeToString(bytes));
+        } else if (value instanceof Map<?, ?> map) {
+            Map<String, JsonNode> objectMap = new LinkedHashMap<>();
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                if (entry.getKey() instanceof String key) {
+                    objectMap.put(key, convertToJsonNode(entry.getValue()));
+                } else {
+                    throw new UnsupportedOperationException("Unsupported key type: " + entry.getKey().getClass());
+                }
+            }
+            return JsonNode.createObjectNode(objectMap);
+        } else if (value instanceof List<?> list) {
+            List<JsonNode> arrayList = new ArrayList<>();
+            for (Object item : list) {
+                arrayList.add(convertToJsonNode(item));
+            }
+            return JsonNode.createArrayNode(arrayList);
+        }
+        throw new UnsupportedOperationException("Unsupported value type: " + value.getClass());
+    }
+
+    private Object decodeValue(Object type) throws IOException {
         if (type instanceof String fieldType) {
             switch (Type.fromString(fieldType)) {
                 case NULL -> {
@@ -310,6 +364,12 @@ public class AvroSerdeDecoder implements Decoder {
                 case STRING -> {
                     return delegate.readString();
                 }
+                case BYTES -> {
+                    ByteBuffer buffer = delegate.readBytes(null);
+                    byte[] bytes = new byte[buffer.remaining()];
+                    buffer.get(bytes);
+                    return bytes; // Return the byte array directly
+                }
                 default -> throw new UnsupportedOperationException("Unsupported type: " + fieldType);
             }
         } else if (type instanceof Map<?, ?> fieldTypeMap) {
@@ -322,7 +382,7 @@ public class AvroSerdeDecoder implements Decoder {
                     for (Map<String, Object> field : fields) {
                         String fieldName = (String) field.get("name");
                         Object fieldType = field.get("type");
-                        record.put(fieldName, decodeArbitraryValue(fieldType));
+                        record.put(fieldName, decodeValue(fieldType));
                     }
                     return record;
                 }
@@ -331,91 +391,16 @@ public class AvroSerdeDecoder implements Decoder {
                     Object itemType = fieldTypeMap.get("items");
                     for (long count = delegate.readArrayStart(); count != 0; count = delegate.arrayNext()) {
                         for (long i = 0; i < count; i++) {
-                            list.add(decodeArbitraryValue(itemType));
+                            list.add(decodeValue(itemType));
                         }
                     }
                     return list;
-                }
-                default -> throw new UnsupportedOperationException("Unsupported type: " + fieldTypeName);
-            }
-        }
-        throw new UnsupportedOperationException("Unsupported type: " + type);
-    }
-
-    @Override
-    public @NonNull JsonNode decodeNode() throws IOException {
-        if (!arrayContextStack.isEmpty()) {
-            ArrayContext context = arrayContextStack.peek();
-            Object itemType = context.itemType;
-            consumeArrayItem();
-            return decodeNode(itemType);
-        }
-
-        Object type = getFieldType(avroSchema, fieldIndex);
-        return decodeNode(type);
-    }
-    private JsonNode decodeNode(Object type) throws IOException {
-        if (type instanceof String fieldType) {
-            switch (Type.fromString(fieldType)) {
-                case NULL -> {
-                    return JsonNode.nullNode();
-                }
-                case BOOLEAN -> {
-                    return JsonNode.createBooleanNode(delegate.readBoolean());
-                }
-                case INT -> {
-                    return JsonNode.createNumberNode(delegate.readInt());
-                }
-                case LONG -> {
-                    return JsonNode.createNumberNode(delegate.readLong());
-                }
-                case FLOAT -> {
-                    return JsonNode.createNumberNode(delegate.readFloat());
-                }
-                case DOUBLE -> {
-                    return JsonNode.createNumberNode(delegate.readDouble());
-                }
-                case STRING -> {
-                    return JsonNode.createStringNode(delegate.readString());
-                }
-                case BYTES -> {
-                    ByteBuffer buffer = delegate.readBytes(null);
-                    byte[] bytes = new byte[buffer.remaining()];
-                    buffer.get(bytes);
-                    // In this case, we can't directly create a JsonNode, so we'll create a string representation
-                    return JsonNode.createStringNode(Base64.getEncoder().encodeToString(bytes));
-                }
-                default -> throw new UnsupportedOperationException("Unsupported type: " + fieldType);
-            }
-        } else if (type instanceof Map<?, ?> fieldTypeMap) {
-            String fieldTypeName = (String) fieldTypeMap.get("type");
-            switch (Type.fromString(fieldTypeName)) {
-                case RECORD -> {
-                    Map<String, JsonNode> objectMap = new LinkedHashMap<>();
-                    @SuppressWarnings("unchecked")
-                    List<Map<String, Object>> fields = (List<Map<String, Object>>) fieldTypeMap.get("fields");
-                    for (Map<String, Object> field : fields) {
-                        String fieldName = (String) field.get("name");
-                        Object fieldType = field.get("type");
-                        objectMap.put(fieldName, decodeNode(fieldType));
-                    }
-                    return JsonNode.createObjectNode(objectMap);
-                }
-                case ARRAY -> {
-                    List<JsonNode> arrayList = new ArrayList<>();
-                    Object itemType = fieldTypeMap.get("items");
-                    for (long count = delegate.readArrayStart(); count != 0; count = delegate.arrayNext()) {
-                        for (long i = 0; i < count; i++) {
-                            arrayList.add(decodeNode(itemType));
-                        }
-                    }
-                    return JsonNode.createArrayNode(arrayList);
                 }
                 case ENUM -> {
                     int index = delegate.readEnum();
                     @SuppressWarnings("unchecked")
                     List<String> symbols = (List<String>) fieldTypeMap.get("symbols");
-                    return JsonNode.createStringNode(symbols.get(index));
+                    return symbols.get(index);
                 }
                 default -> throw new UnsupportedOperationException("Unsupported type: " + fieldTypeName);
             }
