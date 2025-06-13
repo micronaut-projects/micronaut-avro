@@ -233,6 +233,7 @@ class AvroObjectMapperTest {
                 "str1",
                 5,
                 true,
+                MyBean.Color.BLUE,
                 "str2"
             );
 
@@ -253,6 +254,7 @@ class AvroObjectMapperTest {
         String str1,
         int skipInt,
         boolean skipBool,
+        MyBean.Color color,
         String str2
     ) {}
 

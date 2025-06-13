@@ -418,7 +418,8 @@ public class AvroSerdeDecoder implements Decoder {
             case LONG -> delegate.readLong();
             case FLOAT -> delegate.readFloat();
             case DOUBLE -> delegate.readDouble();
-            case STRING, ENUM -> delegate.skipString();
+            case STRING -> delegate.skipString();
+            case ENUM -> delegate.readEnum();
             case BYTES -> delegate.skipBytes();
             default -> throw new UnsupportedOperationException("Unsupported type: " + fieldTypeName);
         }
