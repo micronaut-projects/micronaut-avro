@@ -37,6 +37,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -274,7 +275,71 @@ public class AvroSerdeDecoder implements Decoder {
 
     @Override
     public @Nullable Object decodeArbitrary() throws IOException {
-        return null;
+        if (!arrayContextStack.isEmpty()) {
+            ArrayContext context = arrayContextStack.peek();
+            Object itemType = context.itemType;
+            consumeArrayItem();
+            return decodeArbitraryValue(itemType);
+        }
+
+        Object type = getFieldType(avroSchema, fieldIndex);
+        return decodeArbitraryValue(type);
+    }
+
+    private Object decodeArbitraryValue(Object type) throws IOException {
+        if (type instanceof String fieldType) {
+            switch (Type.fromString(fieldType)) {
+                case NULL -> {
+                    return null;
+                }
+                case BOOLEAN -> {
+                    return delegate.readBoolean();
+                }
+                case INT -> {
+                    return delegate.readInt();
+                }
+                case LONG -> {
+                    return delegate.readLong();
+                }
+                case FLOAT -> {
+                    return delegate.readFloat();
+                }
+                case DOUBLE -> {
+                    return delegate.readDouble();
+                }
+                case STRING -> {
+                    return delegate.readString();
+                }
+                default -> throw new UnsupportedOperationException("Unsupported type: " + fieldType);
+            }
+        } else if (type instanceof Map<?, ?> fieldTypeMap) {
+            String fieldTypeName = (String) fieldTypeMap.get("type");
+            switch (Type.fromString(fieldTypeName)) {
+                case RECORD -> {
+                    Map<String, Object> record = new HashMap<>();
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> fields = (List<Map<String, Object>>) fieldTypeMap.get("fields");
+                    for (Map<String, Object> field : fields) {
+                        String fieldName = (String) field.get("name");
+                        Object fieldType = field.get("type");
+                        record.put(fieldName, decodeArbitraryValue(fieldType));
+                    }
+                    return record;
+                }
+                case ARRAY -> {
+                    List<Object> list = new ArrayList<>();
+                    Object itemType = fieldTypeMap.get("items");
+                    for (long count = delegate.readArrayStart(); count != 0; count = delegate.arrayNext()) {
+                        for (long i = 0; i < count; i++) {
+                            list.add(decodeArbitraryValue(itemType));
+                        }
+                    }
+                    return list;
+                }
+                default -> throw new UnsupportedOperationException("Unsupported type: " + fieldTypeName);
+            }
+        }
+        throw new UnsupportedOperationException("Unsupported type: " + type);
     }
 
     @Override
