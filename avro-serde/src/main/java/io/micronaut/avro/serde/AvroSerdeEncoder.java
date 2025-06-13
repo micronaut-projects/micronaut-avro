@@ -100,25 +100,20 @@ public final class AvroSerdeEncoder implements Encoder {
     @Override
     public @NonNull Encoder encodeObject(@NonNull Argument<?> type) throws IOException {
         Class<?> targetClass = type.getType();
-        AvroSchema childSchema = null;
         if (targetClass.isAnnotationPresent(AvroSchemaSource.class)) {
             String schemaLocation = targetClass.getAnnotation(AvroSchemaSource.class).value();
             try (InputStream stream = resourceLoader.getResourceAsStream(schemaLocation).orElseThrow(() ->
                 new IOException("Schema location " + schemaLocation + " not found"))) {
-                childSchema = ObjectMapper.getDefault().readValue(stream, AvroSchema.class);
+                AvroSchema avroSchema = ObjectMapper.getDefault().readValue(stream, AvroSchema.class);
+                EncodingRunnable objectWriter = new TypeAwareEncodingRunnable(Type.RECORD, () -> { });
+                if (currentKey != null) {
+                    objectBuffer.put(currentKey, new TypeAwareEncodingRunnable(Type.RECORD, objectWriter));
+                    currentKey = null;
+                }
+                return new AvroSerdeEncoder(delegate, false, avroSchema, this, resourceLoader);
             }
         }
-        AvroSerdeEncoder child = new AvroSerdeEncoder(delegate, false, childSchema, this, resourceLoader);
-        EncodingRunnable objectWriter = new TypeAwareEncodingRunnable(Type.RECORD, () -> { });
-
-        if (isArray) {
-            arrayBuffer.add(new TypeAwareEncodingRunnable(Type.RECORD, objectWriter));
-        } else if (currentKey != null) {
-            objectBuffer.put(currentKey, new TypeAwareEncodingRunnable(Type.RECORD, objectWriter));
-            currentKey = null;
-        }
-
-        return child;
+        return new AvroSerdeEncoder(delegate, false, null, this, resourceLoader);
     }
 
     @Override

@@ -384,13 +384,15 @@ class AvroObjectMapperTest {
     }
 
     @Avro
+    @AvroSchemaSource("classpath:META-INF/avro-schemas/AvroObjectMapperTest/Items-schema.avsc")
     record Items(
         String foo,
         int bar,
         float baz,
         Boolean rar,
         double dee,
-        List<String> tags
+        List<String> tags,
+        MyBean.Color color
 
     ) {
     }
@@ -407,9 +409,10 @@ class AvroObjectMapperTest {
         try (ApplicationContext ctx = ApplicationContext.run()) {
             AvroObjectMapper mapper = ctx.getBean(AvroObjectMapper.class);
             List<String> tags = List.of("tag1", "tag2", "tag3");
-            WithSchema expected = new WithSchema(new Items("fizz", 1, 2.1f, true, 2d, tags));
+            WithSchema expected = new WithSchema(new Items("fizz", 1, 2.1f, true, 2d, tags, MyBean.Color.GREEN));
 
             byte[] bytes = mapper.writeValueAsBytes(Argument.of(WithSchema.class), expected);
+            System.out.println(Arrays.toString(bytes));
             WithSchemaNode actualNode = mapper.readValue(bytes, WithSchemaNode.class);
             JsonNode expectedNode = JsonNode.createObjectNode(Map.of(
                 "foo", JsonNode.createStringNode("fizz"),
@@ -421,7 +424,8 @@ class AvroObjectMapperTest {
                     JsonNode.createStringNode("tag1"),
                     JsonNode.createStringNode("tag2"),
                     JsonNode.createStringNode("tag3")
-                ))
+                )),
+                "color", JsonNode.createStringNode("GREEN")
 
             ));
 
