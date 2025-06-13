@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -436,4 +437,43 @@ class AvroObjectMapperTest {
             );
         }
     }
+
+    @Test
+    public void testDecodeArbitrary() throws IOException {
+        try (ApplicationContext ctx = ApplicationContext.run()) {
+            AvroObjectMapper mapper = ctx.getBean(AvroObjectMapper.class);
+
+            List<String> tags = List.of("tag1", "tag2", "tag3");
+            WithSchema original = new WithSchema(new Items("fizz", 1, 2.1f, true, 2d, tags, MyBean.Color.GREEN));
+
+            byte[] bytes = mapper.writeValueAsBytes(Argument.of(WithSchema.class), original);
+            WithSchemaArbitrary actualArbitrary = mapper.readValue(bytes, WithSchemaArbitrary.class);
+
+            // The decodeArbitrary should return a Map representation of the Items record
+            assertInstanceOf(Map.class, actualArbitrary.items);
+            Map<String, Object> expected = Map.of(
+                "foo", "fizz",
+                "bar", 1,
+                "baz", 2.1f,
+                "rar", true,
+                "dee", 2d,
+                "tags", tags,
+                "color", "GREEN"
+            );
+
+            Assertions.assertEquals(
+                expected,
+                actualArbitrary.items
+            );
+        }
+    }
+
+    @AvroSchemaSource("classpath:META-INF/avro-schemas/AvroObjectMapperTest/WithSchema-schema.avsc")
+    @Serdeable
+    @Avro
+    record WithSchemaArbitrary(
+        Object items
+    ) {
+    }
+
 }
