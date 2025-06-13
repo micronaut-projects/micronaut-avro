@@ -414,7 +414,6 @@ class AvroObjectMapperTest {
             WithSchema expected = new WithSchema(new Items("fizz", 1, 2.1f, true, 2d, tags, MyBean.Color.GREEN));
 
             byte[] bytes = mapper.writeValueAsBytes(Argument.of(WithSchema.class), expected);
-            System.out.println(Arrays.toString(bytes));
             WithSchemaNode actualNode = mapper.readValue(bytes, WithSchemaNode.class);
             JsonNode expectedNode = JsonNode.createObjectNode(Map.of(
                 "foo", JsonNode.createStringNode("fizz"),

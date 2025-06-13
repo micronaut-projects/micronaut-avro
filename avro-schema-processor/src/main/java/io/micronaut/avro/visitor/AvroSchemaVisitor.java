@@ -342,7 +342,6 @@ public final class AvroSchemaVisitor implements TypeElementVisitor<Avro, Object>
             try (OutputStream outputStream = specFile.openOutputStream()) {
                 ObjectMapper mapper = ObjectMapper.getDefault();
                 mapper.writeValue(outputStream, avroSchema);
-                System.out.println(avroSchema.getFields());
             } catch (IOException e) {
                 throw new RuntimeException("Failed writing Avro schema " + specFile.getName() + " file: " + e, e);
             }
