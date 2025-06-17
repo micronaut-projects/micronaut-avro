@@ -119,14 +119,7 @@ public class AvroSerdeDecoder implements Decoder {
         if (currentContext.itemsRemaining > 0) {
             return true;
         }
-
-        // Check if there are more blocks in the array
-        long nextBlockCount = delegate.arrayNext();
-        if (nextBlockCount > 0) {
-            currentContext.itemsRemaining = nextBlockCount;
-            return true;
-        }
-
+        delegate.arrayNext();
         return false;
     }
 
