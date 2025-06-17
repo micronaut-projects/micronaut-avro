@@ -20,6 +20,7 @@ import io.micronaut.avro.model.AvroSchema;
 import io.micronaut.avro.model.AvroSchema.Field;
 import io.micronaut.avro.model.AvroSchema.LogicalType;
 import io.micronaut.avro.model.AvroSchema.Type;
+import io.micronaut.context.ApplicationContext;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.io.ResourceLoader;
@@ -28,6 +29,7 @@ import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.ObjectMapper;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -42,7 +44,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/***
+/**
  * Avro Implementation of {@link Decoder}
  * This class provides methods for decoding data into Avro format.
  *
@@ -410,7 +412,99 @@ public class AvroSerdeDecoder implements Decoder {
 
     @Override
     public Decoder decodeBuffer() throws IOException {
-        return null;
+        // Buffer the current value into a byte array
+        byte[] bufferedData = bufferCurrentValue();
+        org.apache.avro.io.Decoder bufferedDecoder = org.apache.avro.io.DecoderFactory.get().binaryDecoder(bufferedData, null);
+
+        return new AvroSerdeDecoder(bufferedDecoder, resourceLoader, avroSchema);
+    }
+
+    /**
+     * Buffers the current value into a byte array.
+     * This method reads the current value and serializes it into bytes.
+     */
+    private byte[] bufferCurrentValue() throws IOException {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        org.apache.avro.io.Encoder delegate = org.apache.avro.io.EncoderFactory.get().binaryEncoder(outputStream, null);
+        try (ApplicationContext ctx = ApplicationContext.run();
+             AvroSerdeEncoder encoder = new AvroSerdeEncoder(delegate, ctx.getEnvironment())){
+            Object currentType;
+            if (!arrayContextStack.isEmpty()) {
+                ArrayContext context = arrayContextStack.peek();
+                currentType = context.itemType;
+            } else {
+                currentType = getFieldType(avroSchema, fieldIndex);
+            }
+            bufferValueByType(currentType, encoder);
+        }
+        return outputStream.toByteArray();
+    }
+
+    /**
+     * Buffers a value of the specified type using the given encoder.
+     */
+    private void bufferValueByType(Object type, AvroSerdeEncoder encoder) throws IOException {
+        if (type instanceof String fieldType) {
+            switch (Type.fromString(fieldType)) {
+                case NULL -> {
+                    // Null values don't need to be written
+                }
+                case BOOLEAN -> {
+                    encoder.encodeBoolean(delegate.readBoolean());
+                }
+                case INT -> {
+                    encoder.encodeInt(delegate.readInt());
+                }
+                case LONG -> {
+                    encoder.encodeLong(delegate.readLong());
+                }
+                case FLOAT -> {
+                    encoder.encodeFloat(delegate.readFloat());
+                }
+                case DOUBLE -> {
+                    encoder.encodeDouble(delegate.readDouble());
+                }
+                case STRING -> {
+                    encoder.encodeString(delegate.readString());
+                }
+                case BYTES -> {
+                    ByteBuffer buffer = delegate.readBytes(null);
+                    byte[] bytes = new byte[buffer.remaining()];
+                    buffer.get(bytes);
+                    encoder.encodeBinary(bytes);
+                }
+                default -> throw new UnsupportedOperationException("Unsupported primitive type: " + fieldType);
+            }
+        } else if (type instanceof Map<?, ?> fieldTypeMap) {
+            String fieldTypeName = (String) fieldTypeMap.get("type");
+            switch (Type.fromString(fieldTypeName)) {
+                case RECORD -> {
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> fields = (List<Map<String, Object>>) fieldTypeMap.get("fields");
+
+                    for (Map<String, Object> field : fields) {
+                        Object fieldType = field.get("type");
+                        bufferValueByType(fieldType, encoder);
+                    }
+                }
+                case ARRAY -> {
+                    Object itemType = fieldTypeMap.get("items");
+                    for (long count = delegate.readArrayStart(); count != 0; count = delegate.arrayNext()) {
+                        for (long i = 0; i < count; i++) {
+                            bufferValueByType(itemType, encoder);
+                        }
+                    }
+                }
+                default -> throw new UnsupportedOperationException("Unsupported complex type: " + fieldTypeName);
+            }
+        } else {
+            throw new UnsupportedOperationException("Unsupported type: " + type);
+        }
+
+        // Consume array item if we're in an array context
+        if (!arrayContextStack.isEmpty()) {
+            consumeArrayItem();
+        }
     }
 
     @Override

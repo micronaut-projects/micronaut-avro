@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-/***
+/**
  * Avro Implementation of {@link Encoder}
  * This class provides methods for encoding data into Avro format.
  *
