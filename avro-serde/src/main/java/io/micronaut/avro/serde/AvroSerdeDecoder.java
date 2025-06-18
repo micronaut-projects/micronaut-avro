@@ -293,6 +293,7 @@ public class AvroSerdeDecoder implements Decoder {
         Object type = getFieldType(avroSchema, fieldIndex);
         return decodeNode(type);
     }
+
     private JsonNode decodeNode(Object type) throws IOException {
         Object value = decodeValue(type);
         return convertToJsonNode(value);
@@ -420,7 +421,7 @@ public class AvroSerdeDecoder implements Decoder {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         org.apache.avro.io.Encoder delegate = org.apache.avro.io.EncoderFactory.get().binaryEncoder(outputStream, null);
         try (ApplicationContext ctx = ApplicationContext.run();
-             AvroSerdeEncoder encoder = new AvroSerdeEncoder(delegate, ctx.getEnvironment())){
+             AvroSerdeEncoder encoder = new AvroSerdeEncoder(delegate, ctx.getEnvironment())) {
             Object currentType;
             if (!arrayContextStack.isEmpty()) {
                 ArrayContext context = arrayContextStack.peek();
