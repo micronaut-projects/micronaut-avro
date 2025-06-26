@@ -20,7 +20,6 @@ import io.micronaut.avro.model.AvroSchema;
 import io.micronaut.avro.model.AvroSchema.Field;
 import io.micronaut.avro.model.AvroSchema.LogicalType;
 import io.micronaut.avro.model.AvroSchema.Type;
-import io.micronaut.context.ApplicationContext;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.io.ResourceLoader;
@@ -420,52 +419,50 @@ public class AvroSerdeDecoder implements Decoder {
     private byte[] bufferCurrentValue() throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         org.apache.avro.io.Encoder delegate = org.apache.avro.io.EncoderFactory.get().binaryEncoder(outputStream, null);
-        try (ApplicationContext ctx = ApplicationContext.run();
-             AvroSerdeEncoder encoder = new AvroSerdeEncoder(delegate, ctx.getEnvironment())) {
-            Object currentType;
-            if (!arrayContextStack.isEmpty()) {
-                ArrayContext context = arrayContextStack.peek();
-                currentType = context.itemType;
-            } else {
-                currentType = getFieldType(avroSchema, fieldIndex);
-            }
-            bufferValueByType(currentType, encoder);
+
+        Object currentType;
+        if (!arrayContextStack.isEmpty()) {
+            ArrayContext context = arrayContextStack.peek();
+            currentType = context.itemType;
+        } else {
+            currentType = getFieldType(avroSchema, fieldIndex);
         }
+        bufferValueByType(currentType, delegate);
+
         return outputStream.toByteArray();
     }
 
     /**
      * Buffers a value of the specified type using the given encoder.
      */
-    private void bufferValueByType(Object type, AvroSerdeEncoder encoder) throws IOException {
+    private void bufferValueByType(Object type, org.apache.avro.io.Encoder encoder) throws IOException {
         if (type instanceof String fieldType) {
             switch (Type.fromString(fieldType)) {
                 case NULL -> {
                     // Null values don't need to be written
                 }
                 case BOOLEAN -> {
-                    encoder.encodeBoolean(delegate.readBoolean());
+                    encoder.writeBoolean(delegate.readBoolean());
                 }
                 case INT -> {
-                    encoder.encodeInt(delegate.readInt());
+                    encoder.writeInt(delegate.readInt());
                 }
                 case LONG -> {
-                    encoder.encodeLong(delegate.readLong());
+                    encoder.writeLong(delegate.readLong());
                 }
                 case FLOAT -> {
-                    encoder.encodeFloat(delegate.readFloat());
+                    encoder.writeFloat(delegate.readFloat());
                 }
                 case DOUBLE -> {
-                    encoder.encodeDouble(delegate.readDouble());
+                    encoder.writeDouble(delegate.readDouble());
                 }
                 case STRING -> {
-                    encoder.encodeString(delegate.readString());
+                    encoder.writeString(delegate.readString());
                 }
                 case BYTES -> {
                     ByteBuffer buffer = delegate.readBytes(null);
                     byte[] bytes = new byte[buffer.remaining()];
-                    buffer.get(bytes);
-                    encoder.encodeBinary(bytes);
+                    encoder.writeBytes(bytes);
                 }
                 default -> throw new UnsupportedOperationException("Unsupported primitive type: " + fieldType);
             }
