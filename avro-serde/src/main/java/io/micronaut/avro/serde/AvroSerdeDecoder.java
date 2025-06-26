@@ -88,7 +88,12 @@ public class AvroSerdeDecoder implements Decoder {
             }
 
             long itemCount = delegate.readArrayStart();
-            arrayContextStack.push(new ArrayContext(itemCount, itemType));
+            if (itemCount == 0) {
+                // If the array is empty, we still need to push a context to track it
+                arrayContextStack.push(new ArrayContext(0, itemType));
+            } else {
+                arrayContextStack.push(new ArrayContext(itemCount, itemType));
+            }
             return this;
         }
 
@@ -101,7 +106,12 @@ public class AvroSerdeDecoder implements Decoder {
 
                 // Read array block count
                 long itemCount = delegate.readArrayStart();
-                arrayContextStack.push(new ArrayContext(itemCount, itemType));
+                if (itemCount == 0) {
+                    // If the array is empty, we still need to push a context to track it
+                    arrayContextStack.push(new ArrayContext(0, itemType));
+                } else {
+                    arrayContextStack.push(new ArrayContext(itemCount, itemType));
+                }
                 return this;
             }
         }
@@ -118,7 +128,11 @@ public class AvroSerdeDecoder implements Decoder {
         if (currentContext.itemsRemaining > 0) {
             return true;
         }
-        delegate.arrayNext();
+        long nextBlockSize = delegate.arrayNext();
+        if (nextBlockSize > 0) {
+            currentContext.itemsRemaining = nextBlockSize;
+            return true;
+        }
         return false;
     }
 
