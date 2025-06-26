@@ -1,0 +1,27 @@
+{
+  "type": "record",
+  "name": "Salamander",
+  "namespace": "dev.me.models",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string"
+    },
+    {
+      "name": "words",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": "string",
+            "javaClass": "java.util.List"
+          },
+          "javaClass": "java.util.List"
+        },
+        "javaClass": "java.util.List"
+      }
+    }
+  ]
+}

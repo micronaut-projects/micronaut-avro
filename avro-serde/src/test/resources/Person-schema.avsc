@@ -1,0 +1,15 @@
+{
+  "type": "record",
+  "name": "Salamander",
+  "namespace": "dev.me.models",
+  "fields": [
+    {
+      "name": "age",
+      "type": "int"
+    },
+    {
+      "name": "name",
+      "type": "string"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "type": "record",
+  "name": "BigIntegerAndBigDecimalHolder",
+  "fields": [
+    {
+      "name": "bigInt",
+      "type": {
+        "javaClass": "java.math.BigInteger",
+        "type": "bytes"
+      }
+    },
+    {
+      "name": "bigDecimal",
+      "type": {
+        "type": "bytes",
+        "logicalType": "big_Decimal"
+      }
+    },
+    {
+      "name": "color",
+      "type": {
+        "name": "color",
+        "type": "enum",
+        "symbols": [
+          "GREEN",
+          "BLUE",
+          "RED",
+          "YELLOW"
+        ]
+      }
+    }
+  ]
+}
